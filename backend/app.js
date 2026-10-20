@@ -49,16 +49,17 @@ console.log("PROJECT ROUTE LOADED");
 app.post("/api/projects", async (req, res) => {
   console.log("PROJECT SUBMIT REQUEST RECEIVED");
   try {
-    const {
-      title,
-      abstract,
-      domain,
-      technologies,
-      problemStatement,
-      mainFeatures
-    } = req.body;
+   const {
+  title,
+  abstract,
+  domain,
+  technologies,
+  problemStatement,
+  mainFeatures,
+  registerNumber
+} = req.body;
 
-   const project = new Project({
+  const project = new Project({
   title,
   abstract,
   domain,
@@ -66,6 +67,7 @@ app.post("/api/projects", async (req, res) => {
   problemStatement,
   mainFeatures,
   projectType: "student",
+  studentRegisterNumber: registerNumber,
   status: "Pending"
 });
 
@@ -83,11 +85,41 @@ app.post("/api/projects", async (req, res) => {
     });
   }
 });
+
 app.get("/api/projects", async (req, res) => {
   try {
-   const projects = await Project.find({});
+    const { registerNumber } = req.query;
 
-    res.json(projects);
+    let projects;
+
+    if (registerNumber) {
+      projects = await Project.find({
+        projectType: "student",
+        studentRegisterNumber: registerNumber
+      });
+    } else {
+      projects = await Project.find({
+        projectType: "student"
+      });
+    }
+
+    const projectsWithStudentName = await Promise.all(
+      projects.map(async (project) => {
+        const student = await Student.findOne({
+          registerNumber: project.studentRegisterNumber
+        });
+
+        console.log("Project Register:", project.studentRegisterNumber);
+        console.log("Student Found:", student);
+
+        return {
+          ...project.toObject(),
+          studentName: student ? student.name : "Unknown Student"
+        };
+      })
+    );
+
+    res.json(projectsWithStudentName);
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch projects",
@@ -95,6 +127,8 @@ app.get("/api/projects", async (req, res) => {
     });
   }
 });
+
+
 app.post("/api/faculty", async (req, res) => {
   try {
     const { facultyId, password } = req.body;

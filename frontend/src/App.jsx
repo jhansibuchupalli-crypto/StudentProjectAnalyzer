@@ -1,13 +1,14 @@
 import { useState } from "react";
 import "./StudentDashboard.css";
 import StudentDashboard from "./StudentDashboard";
-
+import FacultyDashboard from "./FacultyDashboard";
 function App() {
   const [role, setRole] = useState("Student");
   const [showDashboard, setShowDashboard] = useState(false);
   const [loggedInStudent, setLoggedInStudent] = useState(null);
 const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [registerNumber, setRegisterNumber] = useState("");
+const [loggedInFaculty, setLoggedInFaculty] = useState(null); 
+const [registerNumber, setRegisterNumber] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -91,9 +92,8 @@ if (response.ok) {
 
         const data = await response.json();
 
-       if (response.ok) {
-  alert("Faculty login successful");
-
+     if (response.ok) {
+  setLoggedInFaculty(data.faculty);
   setFacultyId("");
   setPassword("");
   document.activeElement.blur();
@@ -137,6 +137,7 @@ if (response.ok) {
        body: JSON.stringify({
   title: projectTitle.trim(),
   domain: projectDomain.trim(),
+  registerNumber: loggedInStudent.registerNumber,
   abstract: projectAbstract.trim(),
   technologies: projectTechnologies
     .split(",")
@@ -168,10 +169,19 @@ if (response.ok) {
        else {
         alert(data.message || "Project submission failed");
       }
-    } catch (error) {
-      alert("Backend connection failed");
-    }
+    }  catch (error) {
+  console.error("Project submission error:", error);
+  alert("Error: " + error.message);
+}
   };
+  if (loggedInFaculty) {
+  return (
+    <FacultyDashboard
+      faculty={loggedInFaculty}
+      onLogout={() => setLoggedInFaculty(null)}
+    />
+  );
+}
  
 if (showSubmitForm && loggedInStudent) {
   return (

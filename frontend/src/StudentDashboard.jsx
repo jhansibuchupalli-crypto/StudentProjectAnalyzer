@@ -10,7 +10,9 @@ export default function StudentDashboard({ student, onLogout, onSubmitProject })
   const [error, setError] = useState("");
 
   useEffect(() => {
-  fetch(API)
+  fetch(
+  `${API}?registerNumber=${encodeURIComponent(student.registerNumber)}`
+)
     .then((res) => {
       if (!res.ok) throw new Error("Failed to load projects");
       return res.json();

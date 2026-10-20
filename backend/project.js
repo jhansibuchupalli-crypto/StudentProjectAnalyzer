@@ -14,7 +14,10 @@ const projectSchema = new mongoose.Schema(
       enum: ["existing", "student"],
       required: true
     },
-
+    studentRegisterNumber: {
+        type: String,
+        required: true
+    },
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],
