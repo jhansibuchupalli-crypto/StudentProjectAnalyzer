@@ -225,6 +225,26 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/test", (req, res) => {
   res.send("API TEST WORKING");
 });
+
+app.post("/api/admin/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (
+    username === process.env.ADMIN_USERNAME &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    return res.json({
+      success: true,
+      message: "Admin login successful"
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: "Invalid admin username or password"
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });

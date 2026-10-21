@@ -15,9 +15,11 @@ const projectSchema = new mongoose.Schema(
       required: true
     },
     studentRegisterNumber: {
-        type: String,
-        required: true
-    },
+    type: String,
+    required: function () {
+    return this.projectType === "student";
+  }
+},
     status: {
       type: String,
       enum: ["Pending", "Approved", "Rejected"],

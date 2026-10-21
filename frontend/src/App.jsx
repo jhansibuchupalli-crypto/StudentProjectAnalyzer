@@ -2,9 +2,11 @@ import { useState } from "react";
 import "./StudentDashboard.css";
 import StudentDashboard from "./StudentDashboard";
 import FacultyDashboard from "./FacultyDashboard";
+import AdminDashboard from "./AdminDashboard";
 function App() {
   const [role, setRole] = useState("Student");
   const [showDashboard, setShowDashboard] = useState(false);
+  const [loggedInAdmin, setLoggedInAdmin] = useState(false);
   const [loggedInStudent, setLoggedInStudent] = useState(null);
 const [showSubmitForm, setShowSubmitForm] = useState(false);
 const [loggedInFaculty, setLoggedInFaculty] = useState(null); 
@@ -106,13 +108,34 @@ if (response.ok) {
     }
 
     if (role === "Admin") {
-      if (!username) {
-        alert("Please enter Admin Username");
-        return;
-      }
+  if (!username || !password) {
+    alert("Please enter Admin Username and Password");
+    return;
+  }
 
-      alert("Admin login will be connected in the next step.");
-    }
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/admin/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      }
+    );
+
+    const data = await response.json();
+
+   if (response.ok && data.success) {
+  setLoggedInAdmin(true);
+} else {
+  alert(data.message || "Invalid admin credentials");
+}
+  } catch (error) {
+    alert("Backend connection failed");
+  }
+}
   };
   
   const handleProjectSubmit = async () => {
@@ -174,6 +197,17 @@ if (response.ok) {
   alert("Error: " + error.message);
 }
   };
+  if (loggedInAdmin) {
+  return (
+    <AdminDashboard
+      onLogout={() => {
+        setLoggedInAdmin(false);
+        setUsername("");
+        setPassword("");
+      }}
+    />
+  );
+}
   if (loggedInFaculty) {
   return (
     <FacultyDashboard
