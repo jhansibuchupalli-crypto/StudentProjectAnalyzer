@@ -3,6 +3,7 @@ const express = require("express");
 const Project = require("./project");
 const cors = require("cors");
 const mongoose=require("mongoose");
+const axios = require("axios");
 
 const app = express();
 
@@ -225,6 +226,74 @@ app.post("/api/login", async (req, res) => {
 app.get("/api/test", (req, res) => {
   res.send("API TEST WORKING");
 });
+app.get("/api/similarity-test", (req, res) => {
+  res.send("SIMILARITY TEST WORKING");
+});
+
+app.post("/api/similarity-analysis", async (req, res) => {
+  try {
+    const {
+  projectId,
+  title,
+  abstract,
+  domain,
+  technologies,
+  problemStatement,
+  mainFeatures
+} = req.body;
+
+ const query = {
+  status: "Approved"
+};
+
+if (projectId) {
+  query._id = { $ne: projectId };
+}
+
+const existingProjects = await Project.find(query);
+console.log("Approved student projects found:", existingProjects.length);
+console.log("Projects sent to AI:", existingProjects.length);
+    const response = await axios.post(
+      "http://127.0.0.1:5001/analyze",
+      {
+        project: {
+          title,
+          abstract,
+          domain,
+           technologies,
+          problemStatement,
+          mainFeatures
+         
+        },
+        existingProjects: existingProjects.map((p) => ({
+          title: p.title,
+          abstract: p.abstract,
+          domain: p.domain,
+          problemStatement: p.problemStatement,
+          
+          technologies: p.technologies ?? [],
+          mainFeatures: p.mainFeatures ?? []
+
+        }))
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.error(
+      "Similarity analysis error:",
+      error.response?.data || error.message
+    );
+    console.error(error.stack);
+
+  res.status(500).json({
+  success: false,
+  message: error.message,
+  details: error.response?.data || null
+});
+  }
+});
+
 
 app.post("/api/admin/login", (req, res) => {
   const { username, password } = req.body;

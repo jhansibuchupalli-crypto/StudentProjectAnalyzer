@@ -1,0 +1,718 @@
+
+/* =========================================
+   SIMILARITY ANALYSIS REPORT - MAIN LAYOUT
+========================================= */
+
+.student-dashboard:has(.similarity-page-header) {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #f5f3ff, #eff6ff 55%, #fdf2f8);
+  color: #30264a;
+}
+
+.student-dashboard:has(.similarity-page-header) .sd-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 26px;
+  box-sizing: border-box;
+}
+
+.student-dashboard:has(.similarity-page-header) .sd-content {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.similarity-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px 30px;
+  margin-bottom: 22px;
+  border-radius: 20px;
+  color: #ffffff;
+  background: linear-gradient(120deg, #4c1d95, #7c3aed 55%, #a855f7);
+  box-shadow: 0 10px 28px rgba(91, 33, 182, 0.18);
+}
+
+.similarity-page-header h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1.35;
+}
+
+.similarity-page-header p {
+  margin: 8px 0 0;
+  color: #f3e8ff;
+  line-height: 1.5;
+}
+
+.similarity-page-header .sd-primary {
+  padding: 11px 17px;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6d28d9;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.similarity-page-header .sd-primary:hover {
+  background: #f3e8ff;
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   TWO-COLUMN REPORT
+========================================= */
+
+.similarity-report-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+  gap: 22px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.similarity-left-panel,
+.similarity-report-layout .similarity-matches-card {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #e9e2f7;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 26px rgba(65, 43, 105, 0.07);
+}
+
+.similarity-left-panel {
+  background: linear-gradient(155deg, #ffffff, #faf5ff);
+}
+
+.similarity-report-layout .similarity-matches-card {
+  margin: 0;
+  background: linear-gradient(155deg, #ffffff, #f0f9ff);
+}
+
+/* =========================================
+   SELECTED PROJECT
+========================================= */
+
+.similarity-left-panel .similarity-selected-card {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.similarity-selected-card h2 {
+  margin: 0 0 12px;
+  color: #4c1d95;
+  font-size: 22px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.similarity-selected-card h3 {
+  margin: 16px 0 14px;
+  color: #6d28d9;
+  font-size: 18px;
+}
+
+/* =========================================
+   OVERALL SIMILARITY CIRCLE
+========================================= */
+
+.similarity-circle-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 18px;
+}
+
+.similarity-circle {
+  --score: 0%;
+  display: grid;
+  place-items: center;
+  width: 158px;
+  height: 158px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    #8b5cf6 var(--score),
+    #ede9fe var(--score)
+  );
+  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.16);
+}
+
+.similarity-circle-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 126px;
+  height: 126px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #ffffff;
+  text-align: center;
+}
+
+.similarity-circle-inner strong {
+  color: #7c3aed;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.similarity-circle-inner span {
+  max-width: 100px;
+  color: #766b89;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* =========================================
+   CATEGORY-WISE SIMILARITY
+========================================= */
+
+.similarity-field {
+  margin: 13px 0;
+}
+
+.similarity-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+  color: #504361;
+  font-size: 13px;
+}
+
+.similarity-field-header span {
+  overflow-wrap: anywhere;
+}
+
+.similarity-field-header strong {
+  flex-shrink: 0;
+  color: #6d28d9;
+  font-size: 13px;
+}
+
+.similarity-track {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #eee8f8;
+}
+
+.similarity-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #8b5cf6, #c4b5fd);
+  transition: width 0.4s ease;
+}
+
+/* Different colors for category bars.
+   Colors are assigned by category position. */
+
+.similarity-field:nth-of-type(1) .similarity-fill {
+  background: linear-gradient(90deg, #7c3aed, #c4b5fd);
+}
+
+.similarity-field:nth-of-type(2) .similarity-fill {
+  background: linear-gradient(90deg, #2563eb, #93c5fd);
+}
+
+.similarity-field:nth-of-type(3) .similarity-fill {
+  background: linear-gradient(90deg, #db2777, #f9a8d4);
+}
+
+.similarity-field:nth-of-type(4) .similarity-fill {
+  background: linear-gradient(90deg, #059669, #6ee7b7);
+}
+
+.similarity-field:nth-of-type(5) .similarity-fill {
+  background: linear-gradient(90deg, #ea580c, #fdba74);
+}
+
+.similarity-field:nth-of-type(6) .similarity-fill {
+  background: linear-gradient(90deg, #0891b2, #67e8f9);
+}
+
+.similarity-field:nth-of-type(7) .similarity-fill {
+  background: linear-gradient(90deg, #9333ea, #d8b4fe);
+}
+
+.similarity-field:nth-of-type(8) .similarity-fill {
+  background: linear-gradient(90deg, #ca8a04, #fde047);
+}
+
+/* =========================================
+   TOP MATCHING PROJECTS
+========================================= */
+
+.similarity-matches-card h2 {
+  margin: 0 0 12px;
+  color: #1e3a8a;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.similarity-match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e4eaf5;
+}
+
+.similarity-match-row:last-child {
+  border-bottom: none;
+}
+
+.similarity-match-row > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.similarity-match-number {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ede9fe, #dbeafe);
+  color: #6d28d9;
+  font-weight: 800;
+}
+
+.similarity-match-row h3 {
+  margin: 0;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.similarity-match-row .similarity-score {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #f3e8ff;
+  color: #7e22ce;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* Give matching project scores different colors */
+
+.similarity-match-row:nth-of-type(2) .similarity-score {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.similarity-match-row:nth-of-type(3) .similarity-score {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.similarity-match-row:nth-of-type(4) .similarity-score {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.similarity-match-row:nth-of-type(5) .similarity-score {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.similarity-match-row:nth-of-type(6) .similarity-score {
+  background: #cffafe;
+  color: #0e7490;
+}
+
+/* =========================================
+   LOADING AND ERROR MESSAGES
+========================================= */
+
+.student-dashboard:has(.similarity-page-header) .sd-error {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+  .student-dashboard:has(.similarity-page-header) .sd-main {
+    padding: 20px;
+  }
+
+  .similarity-report-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .similarity-left-panel,
+  .similarity-report-layout .similarity-matches-card {
+    padding: 18px;
+  }
+
+  .similarity-circle {
+    width: 145px;
+    height: 145px;
+  }
+
+  .similarity-circle-inner {
+    width: 116px;
+    height: 116px;
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 650px) {
+  .student-dashboard:has(.similarity-page-header) .sd-main {
+    padding: 12px;
+  }
+
+  .similarity-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+  }
+
+  .similarity-page-header h1 {
+    font-size: 23px;
+  }
+
+  .similarity-page-header .sd-primary {
+    white-space: normal;
+  }
+
+  .similarity-report-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .similarity-left-panel,
+  .similarity-report-layout .similarity-matches-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .similarity-selected-card h2,
+  .similarity-matches-card h2 {
+    font-size: 19px;
+  }
+
+  .similarity-selected-card h3 {
+    font-size: 17px;
+  }
+
+  .similarity-circle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .similarity-circle-inner {
+    width: 120px;
+    height: 120px;
+  }
+
+  .similarity-circle-inner strong {
+    font-size: 28px;
+  }
+
+  .similarity-match-row {
+    gap: 8px;
+    padding: 13px 0;
+  }
+
+  .similarity-match-row > div {
+    gap: 8px;
+  }
+
+  .similarity-match-row h3 {
+    font-size: 13px;
+  }
+
+  .similarity-match-row .similarity-score {
+    padding: 7px 8px;
+    font-size: 14px;
+  }
+}
+
+/* =========================================
+   OVERALL SCORE + CATEGORIES SIDE BY SIDE
+========================================= */
+
+.similarity-left-panel .similarity-selected-card h2 {
+  margin-bottom: 20px;
+}
+
+.similarity-left-content {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.similarity-overall-section,
+.similarity-category-section {
+  min-width: 0;
+}
+
+.similarity-overall-section {
+  padding: 16px 10px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f5f3ff, #ede9fe);
+  text-align: center;
+}
+
+.similarity-overall-section h3,
+.similarity-category-section h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.similarity-overall-section h3 {
+  color: #6d28d9;
+}
+
+.similarity-category-section h3 {
+  color: #2563eb;
+}
+
+.similarity-overall-section .similarity-circle-area {
+  padding: 8px 0;
+}
+
+.similarity-category-section .similarity-field {
+  margin: 16px 0;
+}
+
+.similarity-category-section .similarity-field-header {
+  font-size: 12px;
+}
+
+.similarity-category-section .similarity-track {
+  height: 9px;
+}
+
+/* Stack sections on small screens */
+
+@media (max-width: 650px) {
+  .similarity-left-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .similarity-overall-section {
+    padding: 18px 12px;
+  }
+
+  .similarity-category-section .similarity-field {
+    margin: 14px 0;
+  }
+}
+
+/* =========================================
+   MATCHING PROJECT VIEW DETAILS
+========================================= */
+
+.similarity-match-info {
+  min-width: 0;
+}
+
+.similarity-match-domain {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.similarity-match-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.similarity-view-button {
+  padding: 8px 11px;
+  border: 1px solid #c4b5fd;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #6d28d9;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.similarity-view-button:hover {
+  background: #6d28d9;
+  color: #ffffff;
+}
+
+.similarity-detail-card {
+  padding: 28px;
+  border: 1px solid #e9e2f7;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #ffffff, #f8f5ff);
+  box-shadow: 0 8px 28px rgba(65, 43, 105, 0.08);
+}
+
+.similarity-detail-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e9e2f7;
+}
+
+.similarity-detail-label {
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.similarity-detail-heading h2 {
+  margin: 8px 0 0;
+  color: #38225f;
+  font-size: 26px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.similarity-detail-score {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 15px 18px;
+  border-radius: 14px;
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.similarity-detail-score strong {
+  font-size: 25px;
+}
+
+.similarity-detail-score span {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.similarity-detail-body {
+  padding-top: 8px;
+}
+
+.similarity-detail-section {
+  padding: 18px 0;
+  border-bottom: 1px solid #eee8f8;
+}
+
+.similarity-detail-section:last-child {
+  border-bottom: none;
+}
+
+.similarity-detail-section h3 {
+  margin: 0 0 8px;
+  color: #6d28d9;
+  font-size: 16px;
+}
+
+.similarity-detail-section p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.similarity-detail-empty {
+  padding: 18px;
+  border-radius: 12px;
+  background: #f5f3ff;
+  color: #5b21b6;
+  line-height: 1.7;
+}
+
+.similarity-detail-id {
+  margin-top: 20px;
+  color: #94a3b8;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 650px) {
+  .similarity-match-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .similarity-view-button {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .similarity-detail-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .similarity-detail-heading {
+    flex-direction: column;
+  }
+
+  .similarity-detail-heading h2 {
+    font-size: 21px;
+  }
+
+  .similarity-detail-score {
+    flex-direction: row;
+    gap: 8px;
+    padding: 10px 13px;
+  }
+}
+
