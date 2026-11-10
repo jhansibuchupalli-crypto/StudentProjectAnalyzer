@@ -39,12 +39,14 @@ app.post("/api/register", async (req, res) => {
     res.status(201).json({
       message: "Student registered successfully"
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Registration failed",
-      error: error.message
-    });
-  }
+  }  catch (error) {
+  console.error("Registration error:", error.message);
+
+  res.status(500).json({
+    message: "Registration failed",
+    error: error.message
+  });
+}
 });
 console.log("PROJECT ROUTE LOADED");
 app.post("/api/projects", async (req, res) => {
@@ -125,6 +127,49 @@ app.get("/api/projects", async (req, res) => {
     res.status(500).json({
       message: "Failed to fetch projects",
       error: error.message
+    });
+  }
+});
+
+app.patch("/api/projects/:id/status", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["Approved", "Rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status"
+      });
+    }
+
+    const project = await Project.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        projectType: "student",
+        status: "Pending"
+      },
+      { $set: { status } },
+      { new: true, runValidators: true }
+    );
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Pending project not found or already reviewed"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Project ${status} successfully`,
+      project
+    });
+  } catch (error) {
+    console.error("Status update error:", error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update project status"
     });
   }
 });

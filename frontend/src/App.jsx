@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./StudentDashboard.css";
-import StudentDashboard from "./StudentDashboard";
-import FacultyDashboard from "./FacultyDashboard";
-import AdminDashboard from "./AdminDashboard";
+import StudentDashboard from "./StudentDashboard.jsx";
+import FacultyDashboard from "./FacultyDashboard.jsx";
+import AdminDashboard from "./AdminDashboard.jsx";
 function App() {
   const [role, setRole] = useState("Student");
   const [showDashboard, setShowDashboard] = useState(false);
