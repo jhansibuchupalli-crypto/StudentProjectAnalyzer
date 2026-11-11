@@ -441,7 +441,7 @@ if (showDashboard && loggedInStudent) {
 
           <input
             style={registrationStyles.input}
-            placeholder="Register Number"
+            placeholder="Register Number (e.g., U23CS0001)"
             value={studentRegisterNumber}
             onChange={(e) => setStudentRegisterNumber(e.target.value)}
           />
@@ -462,7 +462,19 @@ if (showDashboard && loggedInStudent) {
                 return;
               }
 
-              try {
+const registerNumberRegex = /^U(\d{2})CS0(?!000)\d{3}$/;
+
+const match = registerNumberRegex.exec(studentRegisterNumber);
+
+if (!match || Number(match[1]) < 23) {
+  alert(
+    "Invalid Register Number! Use U23CS0001 to U23CS0999 or a future batch."
+  );
+  return;
+}
+
+              
+            try {
                 const response = await fetch("http://localhost:5000/api/register", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

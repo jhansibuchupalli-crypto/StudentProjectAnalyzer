@@ -27,6 +27,32 @@ const Faculty = require("./faculty");
 app.post("/api/register", async (req, res) => {
   try {
     const { name, registerNumber, password } = req.body;
+    
+
+const registerNumberRegex = /^U(\d{2})CS0(?!000)\d{3}$/;
+
+const match = typeof registerNumber === "string"
+  ? registerNumberRegex.exec(registerNumber)
+  : null;
+
+if (!match || Number(match[1]) < 23) {
+  return res.status(400).json({
+    message:
+      "Invalid Register Number! Use U23CS0001 to U23CS0999 or a future batch."
+  });
+}
+
+
+
+const existingStudent = await Student.findOne({
+  registerNumber
+});
+
+if (existingStudent) {
+  return res.status(409).json({
+    message: "This Register Number is already registered!"
+  });
+}
 
     const student = new Student({
       name,
