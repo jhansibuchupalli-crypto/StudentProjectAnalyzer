@@ -1,643 +1,963 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 import "./StudentDashboard.css";
 import StudentDashboard from "./StudentDashboard.jsx";
 import FacultyDashboard from "./FacultyDashboard.jsx";
 import AdminDashboard from "./AdminDashboard.jsx";
+
+const API = "http://localhost:5000";
+const socket = io("http://localhost:5000", {
+  autoConnect: false
+});
 function App() {
+    useEffect(() => {
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.disconnect();
+    };
+  }, []);
   const [role, setRole] = useState("Student");
   const [showDashboard, setShowDashboard] = useState(false);
   const [loggedInAdmin, setLoggedInAdmin] = useState(false);
   const [loggedInStudent, setLoggedInStudent] = useState(null);
-const [showSubmitForm, setShowSubmitForm] = useState(false);
-const [loggedInFaculty, setLoggedInFaculty] = useState(null); 
-const [registerNumber, setRegisterNumber] = useState("");
+  const [loggedInFaculty, setLoggedInFaculty] = useState(null);
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+
+  // LOGIN STATES
+  const [registerNumber, setRegisterNumber] = useState("");
   const [facultyId, setFacultyId] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // STUDENT REGISTRATION STATES
   const [showRegister, setShowRegister] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [studentRegisterNumber, setStudentRegisterNumber] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
-  const [projectTitle, setProjectTitle] = useState("");
-const [projectAbstract, setProjectAbstract] = useState("");
-const [projectDomain, setProjectDomain] = useState("");
-const [projectTechnologies, setProjectTechnologies] = useState("");
-const [projectProblem, setProjectProblem] = useState("");
-const [projectFeatures, setProjectFeatures] = useState("");
+  const [studentConfirmPassword, setStudentConfirmPassword] = useState("");
+  const [showStudentPassword, setShowStudentPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registrationLoading, setRegistrationLoading] = useState(false);
 
+  // EMAIL OTP STATES
+  const [studentOtp, setStudentOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  // PROJECT SUBMISSION STATES
+  const [projectTitle, setProjectTitle] = useState("");
+  const [projectAbstract, setProjectAbstract] = useState("");
+  const [projectDomain, setProjectDomain] = useState("");
+  const [projectTechnologies, setProjectTechnologies] = useState("");
+  const [projectProblem, setProjectProblem] = useState("");
+  const [projectFeatures, setProjectFeatures] = useState("");
+
+  // LOGIN
   const handleLogin = async () => {
     if (!password) {
       alert("Please enter password");
       return;
     }
 
-    if (role === "Student") {
-      if (!registerNumber) {
-        alert("Please enter Register Number");
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              registerNumber,
-              password,
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-       
-if (response.ok) {
-  setLoggedInStudent(data.student);
-  setShowDashboard(true);
-
-  setRegisterNumber("");
-  setPassword("");
-  document.activeElement.blur();
-} else {
-  alert(data.message);
-} 
-
-      } catch (error) {
-        alert("Backend connection failed");
-      }
+    if (role === "Student" && !registerNumber.trim()) {
+      alert("Please enter Register Number");
+      return;
     }
 
-    if (role === "Faculty") {
-      if (!facultyId) {
-        alert("Please enter Faculty ID");
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/faculty/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              facultyId,
-              password,
-            }),
-          }
-        );
-
-        const data = await response.json();
-
-     if (response.ok) {
-  setLoggedInFaculty(data.faculty);
-  setFacultyId("");
-  setPassword("");
-  document.activeElement.blur();
-} else {
-  alert(data.message);
-}
-      } catch (error) {
-        alert("Backend connection failed");
-      }
+    if (role === "Faculty" && !facultyId.trim()) {
+      alert("Please enter Faculty ID");
+      return;
     }
 
-    if (role === "Admin") {
-  if (!username || !password) {
-    alert("Please enter Admin Username and Password");
-    return;
-  }
+    if (role === "Admin" && !username.trim()) {
+      alert("Please enter Admin Username");
+      return;
+    }
 
-  try {
-    const response = await fetch(
-      "http://localhost:5000/api/admin/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      }
-    );
+    const endpoint =
+      role === "Student"
+        ? "/api/login"
+        : role === "Faculty"
+        ? "/api/faculty/login"
+        : "/api/admin/login";
 
-    const data = await response.json();
-
-   if (response.ok && data.success) {
-  setLoggedInAdmin(true);
-} else {
-  alert(data.message || "Invalid admin credentials");
-}
-  } catch (error) {
-    alert("Backend connection failed");
-  }
-}
-  };
-  
-  const handleProjectSubmit = async () => {
-   if (
-  !projectTitle.trim() ||
-  !projectDomain.trim() ||
-  !projectAbstract.trim() ||
-  !projectTechnologies.trim() ||
-  !projectProblem.trim() ||
-  !projectFeatures.trim()
-) {
-  alert("Please fill all project fields");
-  return;
-}
+    const payload =
+      role === "Student"
+        ? {
+            registerNumber: registerNumber.trim().toUpperCase(),
+            password,
+          }
+        : role === "Faculty"
+        ? { facultyId, password }
+        : { username, password };
 
     try {
-      const response = await fetch("http://localhost:5000/api/projects", {
+      const response = await fetch(`${API}${endpoint}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-       body: JSON.stringify({
-  title: projectTitle.trim(),
-  domain: projectDomain.trim(),
-  registerNumber: loggedInStudent.registerNumber,
-  abstract: projectAbstract.trim(),
-  technologies: projectTechnologies
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean),
-  problemStatement: projectProblem.trim(),
-  mainFeatures: projectFeatures
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean),
-}),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
-     if (response.ok) {
-  alert("Project submitted successfully!");
-
-  setProjectTitle("");
-  setProjectDomain("");
-  setProjectAbstract("");
-  setProjectTechnologies("");
-  setProjectProblem("");
-  setProjectFeatures("");
-
-  setShowSubmitForm(false);
-  setShowDashboard(true);
-}
-       else {
-        alert(data.message || "Project submission failed");
+      if (!response.ok) {
+        alert(data.message || "Login failed");
+        return;
       }
-    }  catch (error) {
-  console.error("Project submission error:", error);
-  alert("Error: " + error.message);
-}
+
+      if (role === "Student") {
+        setLoggedInStudent(data.student);
+        setShowDashboard(true);
+        setRegisterNumber("");
+      } else if (role === "Faculty") {
+        setLoggedInFaculty(data.faculty);
+        setFacultyId("");
+      } else {
+        if (!data.success) {
+          alert(data.message || "Invalid admin credentials");
+          return;
+        }
+        setLoggedInAdmin(true);
+      }
+
+      setPassword("");
+      document.activeElement?.blur();
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Backend connection failed");
+    }
   };
+
+  // PROJECT SUBMISSION
+  const handleProjectSubmit = async () => {
+    if (
+      !projectTitle.trim() ||
+      !projectDomain.trim() ||
+      !projectAbstract.trim() ||
+      !projectTechnologies.trim() ||
+      !projectProblem.trim() ||
+      !projectFeatures.trim()
+    ) {
+      alert("Please fill all project fields");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API}/api/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: projectTitle.trim(),
+          domain: projectDomain.trim(),
+          registerNumber: loggedInStudent.registerNumber,
+          abstract: projectAbstract.trim(),
+          technologies: projectTechnologies
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          problemStatement: projectProblem.trim(),
+          mainFeatures: projectFeatures
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Project submission failed");
+        return;
+      }
+
+      alert("Project submitted successfully!");
+
+      setProjectTitle("");
+      setProjectDomain("");
+      setProjectAbstract("");
+      setProjectTechnologies("");
+      setProjectProblem("");
+      setProjectFeatures("");
+      setShowSubmitForm(false);
+      setShowDashboard(true);
+    } catch (error) {
+      console.error("Project submission error:", error);
+      alert("Error: " + error.message);
+    }
+  };
+
+  // VALIDATIONS
+  const passwordValid =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,64}$/.test(
+      studentPassword
+    );
+
+  const registerNumberValid = (value) => {
+    const match = /^U23(CS|AI|ID|IB|DS|ML)(\d{4,})$/.exec(value);
+    return Boolean(match && /[1-9]/.test(match[2]));
+  };
+
+  const emailValid = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  // RESET OTP
+  const resetOtp = () => {
+    setStudentOtp("");
+    setOtpSent(false);
+    setOtpVerified(false);
+    setVerifiedEmail("");
+  };
+
+  // SEND OTP
+const handleSendOtp = async () => {
+  const name = studentName.trim();
+  const number = studentRegisterNumber.trim().toUpperCase();
+  const email = studentEmail.trim().toLowerCase();
+
+  if (!name || !number) {
+    alert("Please enter your name and register number first.");
+    return;
+  }
+
+  if (!registerNumberValid(number)) {
+    alert("Please enter a valid register number.");
+    return;
+  }
+
+  if (!emailValid(email)) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  if (otpLoading || otpVerified) return;
+
+  try {
+    setOtpLoading(true);
+
+    const response = await fetch(`${API}/api/otp/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        registerNumber: number,
+        email,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Failed to send OTP.");
+      return;
+    }
+
+    setOtpSent(true);
+    setOtpVerified(false);
+    setVerifiedEmail("");
+    setStudentOtp("");
+
+    alert("OTP sent successfully! Check your email.");
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    alert("Unable to connect to backend.");
+  } finally {
+    setOtpLoading(false);
+  }
+};
+
+// VERIFY OTP
+const handleVerifyOtp = async () => {
+  const email = studentEmail.trim().toLowerCase();
+
+  if (!otpSent) {
+    alert("Please send OTP first.");
+    return;
+  }
+
+  if (!/^\d{6}$/.test(studentOtp.trim())) {
+    alert("Please enter a valid 6-digit OTP.");
+    return;
+  }
+
+  if (otpLoading) return;
+
+  try {
+    setOtpLoading(true);
+
+    const response = await fetch(`${API}/api/otp/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        otp: studentOtp.trim(),
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "OTP verification failed.");
+      return;
+    }
+
+    setOtpVerified(true);
+    setVerifiedEmail(email);
+
+    alert("Email verified successfully!");
+  } catch (error) {
+    console.error("Verify OTP error:", error);
+    alert("Unable to connect to backend.");
+  } finally {
+    setOtpLoading(false);
+  }
+};
+
+
+  // STUDENT REGISTRATION
+  const handleStudentRegistration = async (e) => {
+    e.preventDefault();
+
+    if (registrationLoading) return;
+
+    const name = studentName.trim();
+    const number = studentRegisterNumber.trim().toUpperCase();
+    const email = studentEmail.trim().toLowerCase();
+
+    if (
+      !name ||
+      !number ||
+      !email ||
+      !studentPassword ||
+      !studentConfirmPassword
+    ) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    if (!registerNumberValid(number)) {
+      alert(
+        "Invalid Register Number. Example: U23CS0133. Allowed branches: CS, AI, ID, IB, DS, ML."
+      );
+      return;
+    }
+
+    if (!emailValid(email)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    if (!passwordValid) {
+      alert(
+        "Password must have 8-64 characters, uppercase, lowercase, number, special character and no spaces."
+      );
+      return;
+    }
+
+    if (studentPassword !== studentConfirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    if (!otpVerified || verifiedEmail !== email) {
+      alert("Please verify your email using OTP before registering.");
+      return;
+    }
+
+    try {
+      setRegistrationLoading(true);
+
+      const response = await fetch(`${API}/api/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          registerNumber: number,
+          email,
+          password: studentPassword,
+          confirmPassword: studentConfirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      alert("Student registered successfully! You can now login.");
+
+      setStudentName("");
+      setStudentRegisterNumber("");
+      setStudentEmail("");
+      setStudentPassword("");
+      setStudentConfirmPassword("");
+      setShowStudentPassword(false);
+      setShowConfirmPassword(false);
+      resetOtp();
+      setShowRegister(false);
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("Backend connection failed");
+    } finally {
+      setRegistrationLoading(false);
+    }
+  };
+
+  // ADMIN DASHBOARD
   if (loggedInAdmin) {
-  return (
-    <AdminDashboard
-      onLogout={() => {
-        setLoggedInAdmin(false);
-        setUsername("");
-        setPassword("");
-      }}
-    />
-  );
-}
-  if (loggedInFaculty) {
-  return (
-    <FacultyDashboard
-      faculty={loggedInFaculty}
-      onLogout={() => setLoggedInFaculty(null)}
-    />
-  );
-}
- 
-if (showSubmitForm && loggedInStudent) {
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f5f8fc",
-        padding: "30px 16px",
-        boxSizing: "border-box",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "800px",
-          margin: "0 auto",
-          padding: "30px",
-          background: "#ffffff",
-          border: "1px solid #dbe5f0",
-          borderRadius: "14px",
-          boxShadow: "0 8px 25px rgba(20, 50, 80, 0.08)",
-          boxSizing: "border-box",
+    return (
+      <AdminDashboard
+        onLogout={() => {
+          setLoggedInAdmin(false);
+          setUsername("");
+          setPassword("");
         }}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            setShowSubmitForm(false);
-            setShowDashboard(true);
-          }}
-          style={{
-            padding: "10px 16px",
-            background: "#234b6b",
-            color: "#fff",
-            border: "none",
-            borderRadius: "7px",
-            cursor: "pointer",
-          }}
-        >
-          ← Back to Dashboard
-        </button>
+      />
+    );
+  }
 
-        <h1
-          style={{
-            textAlign: "center",
-            color: "#234b6b",
-            fontSize: "32px",
-            margin: "25px 0 8px",
-          }}
-        >
-          Submit New Project
-        </h1>
+  // FACULTY DASHBOARD
+  if (loggedInFaculty) {
+    return (
+    <FacultyDashboard
+  faculty={loggedInFaculty}
+  socket={socket}
+  onLogout={() => setLoggedInFaculty(null)}
+/>
+    );
+  }
 
-        <p
-          style={{
-            textAlign: "center",
-            color: "#64748b",
-            marginBottom: "28px",
-          }}
-        >
-          Enter your project details below.
-        </p>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleProjectSubmit();
-          }}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-          }}
-        >
-          <label style={formLabelStyle}>Project Title *</label>
-          <input
-            style={formInputStyle}
-            placeholder="Enter project title"
-            value={projectTitle}
-            onChange={(e) => setProjectTitle(e.target.value)}
-            required
-          />
-
-          <label style={formLabelStyle}>Project Domain *</label>
-          <input
-            style={formInputStyle}
-            placeholder="Enter project domain"
-            value={projectDomain}
-            onChange={(e) => setProjectDomain(e.target.value)}
-            required
-          />
-
-          <label style={formLabelStyle}>Abstract *</label>
-          <textarea
-            style={formInputStyle}
-            placeholder="Describe your project"
-            rows={4}
-            value={projectAbstract}
-            onChange={(e) => setProjectAbstract(e.target.value)}
-            required
-          />
-
-          <label style={formLabelStyle}>Technologies *</label>
-          <input
-            style={formInputStyle}
-            placeholder="React, Node.js, MongoDB"
-            value={projectTechnologies}
-            onChange={(e) => setProjectTechnologies(e.target.value)}
-            required
-          />
-
-          <label style={formLabelStyle}>Problem Statement *</label>
-          <textarea
-            style={formInputStyle}
-            placeholder="What problem does your project solve?"
-            rows={3}
-            value={projectProblem}
-            onChange={(e) => setProjectProblem(e.target.value)}
-            required
-          />
-
-          <label style={formLabelStyle}>Main Features *</label>
-          <textarea
-            style={formInputStyle}
-            placeholder="Enter features separated by commas"
-            rows={3}
-            value={projectFeatures}
-            onChange={(e) => setProjectFeatures(e.target.value)}
-            required
-          />
-
+  // PROJECT SUBMISSION FORM
+  if (showSubmitForm && loggedInStudent) {
+    return (
+      <div style={projectStyles.page}>
+        <div style={projectStyles.card}>
           <button
-            type="submit"
-            style={{
-              padding: "14px",
-              background: "#234b6b",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "7px",
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginTop: "8px",
+            type="button"
+            style={projectStyles.backButton}
+            onClick={() => {
+              setShowSubmitForm(false);
+              setShowDashboard(true);
             }}
           >
-            Submit Project
+            ← Back to Dashboard
           </button>
-        </form>
-      </div>
-    </div>
-  );
-}
 
-    
-if (showDashboard && loggedInStudent) {
-  return (
-    <StudentDashboard
-      student={loggedInStudent}
-      onLogout={() => {
-        setShowDashboard(false);
-        setLoggedInStudent(null);
-        setRegisterNumber("");
-        setPassword("");
-      }}
-      onSubmitProject={() => {
-  setShowDashboard(false);
-  setShowSubmitForm(true);
-}}
-    />
-  );
-}
-
-  if (showRegister) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "24px",
-          boxSizing: "border-box",
-          background: "linear-gradient(135deg, #dbeafe, #ede9fe, #fce7f3)",
-          fontFamily: "Arial, sans-serif",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "460px",
-            padding: "36px",
-            boxSizing: "border-box",
-            background: "#fff",
-            borderRadius: "22px",
-            boxShadow: "0 15px 45px rgba(60,70,130,0.18)",
-          }}
-        >
-         
-<h1
-  style={{
-    margin: "0 0 12px",
-    textAlign: "center",
-    color: "#1e3a8a",
-    fontSize: "28px",
-    fontWeight: "700",
-    lineHeight: "1.2",
-    whiteSpace: "nowrap",
-  }}
->
-  Student Registration
-</h1>
-
-          <p style={{ textAlign: "center", color: "#64748b" }}>
-            Create your student account
+          <h1 style={projectStyles.title}>Submit New Project</h1>
+          <p style={projectStyles.subtitle}>
+            Enter your project details below.
           </p>
 
-          <input
-            style={registrationStyles.input}
-            placeholder="Student Name"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-          />
-
-          <input
-            style={registrationStyles.input}
-            placeholder="Register Number (e.g., U23CS0001)"
-            value={studentRegisterNumber}
-            onChange={(e) => setStudentRegisterNumber(e.target.value)}
-          />
-
-          <input
-            style={registrationStyles.input}
-            type="password"
-            placeholder="Password"
-            value={studentPassword}
-            onChange={(e) => setStudentPassword(e.target.value)}
-          />
-
-          <button
-            style={registrationStyles.registerButton}
-            onClick={async () => {
-              if (!studentName.trim() || !studentRegisterNumber.trim() || !studentPassword) {
-                alert("Please fill all fields");
-                return;
-              }
-
-const registerNumberRegex = /^U(\d{2})CS0(?!000)\d{3}$/;
-
-const match = registerNumberRegex.exec(studentRegisterNumber);
-
-if (!match || Number(match[1]) < 23) {
-  alert(
-    "Invalid Register Number! Use U23CS0001 to U23CS0999 or a future batch."
-  );
-  return;
-}
-
-              
-            try {
-                const response = await fetch("http://localhost:5000/api/register", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    name: studentName.trim(),
-                    registerNumber: studentRegisterNumber.trim(),
-                    password: studentPassword,
-                  }),
-                });
-
-                const data = await response.json();
-                console.log("PROJECT API RESPONSE:", data);
-
-                if (response.ok) {
-                  alert("Student registered successfully!");
-                  setStudentName("");
-                  setStudentRegisterNumber("");
-                  setStudentPassword("");
-                  setShowRegister(false);
-                } else {
-                  alert(data.message || "Registration failed");
-                }
-              } catch (error) {
-                alert("Backend connection failed");
-              }
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleProjectSubmit();
+            }}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
             }}
           >
-            Create Student Account
-          </button>
+            <label style={formLabelStyle}>Project Title *</label>
+            <input
+              style={formInputStyle}
+              placeholder="Enter project title"
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
+              required
+            />
 
-          <button
-            style={registrationStyles.backButton}
-            onClick={() => setShowRegister(false)}
-          >
-            ← Back to Login
-          </button>
+            <label style={formLabelStyle}>Project Domain *</label>
+            <input
+              style={formInputStyle}
+              placeholder="Enter project domain"
+              value={projectDomain}
+              onChange={(e) => setProjectDomain(e.target.value)}
+              required
+            />
+
+            <label style={formLabelStyle}>Abstract *</label>
+            <textarea
+              style={formInputStyle}
+              placeholder="Describe your project"
+              rows={4}
+              value={projectAbstract}
+              onChange={(e) => setProjectAbstract(e.target.value)}
+              required
+            />
+
+            <label style={formLabelStyle}>Technologies *</label>
+            <input
+              style={formInputStyle}
+              placeholder="React, Node.js, MongoDB"
+              value={projectTechnologies}
+              onChange={(e) => setProjectTechnologies(e.target.value)}
+              required
+            />
+
+            <label style={formLabelStyle}>Problem Statement *</label>
+            <textarea
+              style={formInputStyle}
+              placeholder="What problem does your project solve?"
+              rows={3}
+              value={projectProblem}
+              onChange={(e) => setProjectProblem(e.target.value)}
+              required
+            />
+
+            <label style={formLabelStyle}>Main Features *</label>
+            <textarea
+              style={formInputStyle}
+              placeholder="Enter features separated by commas"
+              rows={3}
+              value={projectFeatures}
+              onChange={(e) => setProjectFeatures(e.target.value)}
+              required
+            />
+
+            <button type="submit" style={projectStyles.submitButton}>
+              Submit Project
+            </button>
+          </form>
         </div>
       </div>
     );
   }
 
-  
+  // STUDENT DASHBOARD
+  if (showDashboard && loggedInStudent) {
+    return (
+      <StudentDashboard
+        student={loggedInStudent}
+        socket={socket}
+        onLogout={() => {
+          setShowDashboard(false);
+          setLoggedInStudent(null);
+          setRegisterNumber("");
+          setPassword("");
+        }}
+        onSubmitProject={() => {
+          setShowDashboard(false);
+          setShowSubmitForm(true);
+        }}
+      />
+    );
+  }
+
+  // STUDENT REGISTRATION - REDESIGNED
+  if (showRegister) {
+    return (
+      <div style={registrationStyles.page}>
+        <div style={registrationStyles.card}>
+          <div style={registrationStyles.header}>
+            <div style={registrationStyles.logo}>🎓</div>
+
+            <h1 style={registrationStyles.heading}>
+              Student Registration
+            </h1>
+
+            <p style={registrationStyles.subtitle}>
+              Create your account to explore and submit projects
+            </p>
+          </div>
+
+          <form onSubmit={handleStudentRegistration}>
+            {/* FULL NAME AND REGISTER NUMBER */}
+            <div style={registrationStyles.twoColumns}>
+              <div style={registrationStyles.field}>
+                <label style={registrationStyles.label}>
+                  Full Name
+                </label>
+
+                <input
+                  style={registrationStyles.input}
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={studentName}
+                  onChange={(e) => {
+  setStudentName(e.target.value);
+  resetOtp();
+}}
+                  autoComplete="name"
+                  required
+                />
+              </div>
+
+              <div style={registrationStyles.field}>
+                <label style={registrationStyles.label}>
+                  Register Number
+                </label>
+
+                <input
+                  style={registrationStyles.input}
+                  type="text"
+                  placeholder="e.g., U23CS0133"
+                  value={studentRegisterNumber}
+                 onChange={(e) => {
+  setStudentRegisterNumber(e.target.value.toUpperCase());
+  resetOtp();
+}}
+                  required
+                />
+
+                {studentRegisterNumber.length > 0 && (
+                  <p
+                    style={{
+                      ...registrationStyles.hint,
+                      color: registerNumberValid(
+                        studentRegisterNumber.trim()
+                      )
+                        ? "#15803d"
+                        : "#dc2626",
+                    }}
+                  >
+                    {registerNumberValid(
+                      studentRegisterNumber.trim()
+                    )
+                      ? "✓ Valid register number"
+                      : "Enter a valid U23 register number"}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* EMAIL AND OTP */}
+            <div style={registrationStyles.field}>
+              <label style={registrationStyles.label}>
+                Email Address
+              </label>
+
+              <div style={registrationStyles.inlineRow}>
+                <input
+                  style={{
+                    ...registrationStyles.input,
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={studentEmail}
+                  onChange={(e) => {
+                    setStudentEmail(e.target.value);
+                    resetOtp();
+                  }}
+                  autoComplete="email"
+                  required
+                />
+
+                {!otpVerified && (
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={otpLoading}
+                    style={{
+                      ...registrationStyles.otpButton,
+                      opacity: otpLoading ? 0.6 : 1,
+                    }}
+                  >
+                    {otpLoading
+                      ? "Please Wait..."
+                      : otpSent
+                      ? "Resend OTP"
+                      : "Send OTP"}
+                  </button>
+                )}
+              </div>
+
+              {otpVerified && (
+                <p style={registrationStyles.success}>
+                  ✓ Email Verified Successfully
+                </p>
+              )}
+            </div>
+
+            {/* OTP VERIFICATION */}
+            {otpSent && !otpVerified && (
+              <div style={registrationStyles.otpSection}>
+                <label style={registrationStyles.label}>
+                  Enter Verification Code
+                </label>
+
+                <div style={registrationStyles.inlineRow}>
+                  <input
+                    style={{
+                      ...registrationStyles.input,
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="Enter 6-digit OTP"
+                    value={studentOtp}
+                    onChange={(e) =>
+                      setStudentOtp(
+                        e.target.value.replace(/\D/g, "")
+                      )
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    disabled={
+                      otpLoading || studentOtp.length !== 6
+                    }
+                    style={{
+                      ...registrationStyles.verifyButton,
+                      opacity:
+                        otpLoading || studentOtp.length !== 6
+                          ? 0.6
+                          : 1,
+                    }}
+                  >
+                    {otpLoading ? "Verifying..." : "Verify OTP"}
+                  </button>
+                </div>
+
+                <p style={registrationStyles.hint}>
+                  OTP is valid for 5 minutes.
+                </p>
+              </div>
+            )}
+
+            {/* PASSWORD AND CONFIRM PASSWORD */}
+            <div style={registrationStyles.twoColumns}>
+              <div style={registrationStyles.field}>
+                <label style={registrationStyles.label}>
+                  Create Password
+                </label>
+
+                <div style={registrationStyles.passwordWrapper}>
+                  <input
+                    style={{
+                      ...registrationStyles.input,
+                      paddingRight: "65px",
+                    }}
+                    type={
+                      showStudentPassword ? "text" : "password"
+                    }
+                    placeholder="Enter password"
+                    value={studentPassword}
+                    onChange={(e) =>
+                      setStudentPassword(e.target.value)
+                    }
+                    autoComplete="new-password"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    style={registrationStyles.showButton}
+                    onClick={() =>
+                      setShowStudentPassword(!showStudentPassword)
+                    }
+                  >
+                    {showStudentPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+
+              <div style={registrationStyles.field}>
+                <label style={registrationStyles.label}>
+                  Confirm Password
+                </label>
+
+                <div style={registrationStyles.passwordWrapper}>
+                  <input
+                    style={{
+                      ...registrationStyles.input,
+                      paddingRight: "65px",
+                    }}
+                    type={
+                      showConfirmPassword ? "text" : "password"
+                    }
+                    placeholder="Re-enter password"
+                    value={studentConfirmPassword}
+                    onChange={(e) =>
+                      setStudentConfirmPassword(e.target.value)
+                    }
+                    autoComplete="new-password"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    style={registrationStyles.showButton}
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                  >
+                    {showConfirmPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* PASSWORD VALIDATION */}
+            <p
+              style={{
+                ...registrationStyles.hint,
+                color:
+                  studentPassword.length > 0 && passwordValid
+                    ? "#15803d"
+                    : "#64748b",
+              }}
+            >
+              {studentPassword.length > 0 && passwordValid
+                ? "✓ Strong password — all requirements met"
+                : "Use 8–64 characters with uppercase, lowercase, number and special character. No spaces."}
+            </p>
+
+            {studentConfirmPassword.length > 0 && (
+              <p
+                style={{
+                  ...registrationStyles.hint,
+                  color:
+                    studentPassword === studentConfirmPassword
+                      ? "#15803d"
+                      : "#dc2626",
+                }}
+              >
+                {studentPassword === studentConfirmPassword
+                  ? "✓ Passwords match"
+                  : "✕ Passwords do not match"}
+              </p>
+            )}
+
+            {/* CREATE ACCOUNT BUTTON */}
+            <button
+              type="submit"
+              disabled={registrationLoading}
+              style={{
+                ...registrationStyles.registerButton,
+                opacity: registrationLoading ? 0.7 : 1,
+                cursor: registrationLoading
+                  ? "not-allowed"
+                  : "pointer",
+              }}
+            >
+              {registrationLoading
+                ? "Creating Account..."
+                : "Create Student Account"}
+            </button>
+
+            <div style={registrationStyles.loginText}>
+              Already have an account?{" "}
+              <button
+                type="button"
+                style={registrationStyles.loginLink}
+                onClick={() => {
+  setShowRegister(false);
+  resetOtp();
+}}
+              >
+                Login
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // MAIN LOGIN PAGE
   return (
     <div style={styles.page}>
-
-      {/* LEFT SIDE */}
       <div style={styles.leftSection}>
-
         <div style={styles.logoSection}>
           <div style={styles.logo}>🎓</div>
-
           <h1 style={styles.projectName}>
             Project Similarity Analyzer
           </h1>
         </div>
 
         <p style={styles.tagline}>
-          Detect Similarity&nbsp;&nbsp;•&nbsp;&nbsp;
-          Find Novelty&nbsp;&nbsp;•&nbsp;&nbsp;
-          Encourage Originality
+          Detect Similarity &nbsp;•&nbsp; Find Novelty
+          &nbsp;•&nbsp; Encourage Originality
         </p>
 
-        <h2 style={styles.chooseTitle}>
-          Choose Your Role
-        </h2>
+        <h2 style={styles.chooseTitle}>Choose Your Role</h2>
 
-        {/* ROLE CARDS */}
         <div style={styles.roleContainer}>
-
-          {/* STUDENT */}
           <div
             onClick={() => setRole("Student")}
             style={{
               ...styles.roleCard,
-              ...(role === "Student"
-                ? styles.studentActive
-                : {}),
+              ...(role === "Student" ? styles.studentActive : {}),
             }}
           >
             <div style={styles.roleIcon}>🎓</div>
-
-            <h3 style={styles.roleTitle}>
-              Student
-            </h3>
-
+            <h3 style={styles.roleTitle}>Student</h3>
             <p style={styles.roleDescription}>
               Submit your project
               <br />
               and track status
             </p>
-
-            <div style={styles.arrow}>
-              →
-            </div>
+            <div style={styles.arrow}>→</div>
           </div>
 
-          {/* FACULTY */}
           <div
             onClick={() => setRole("Faculty")}
             style={{
               ...styles.roleCard,
-              ...(role === "Faculty"
-                ? styles.facultyActive
-                : {}),
+              ...(role === "Faculty" ? styles.facultyActive : {}),
             }}
           >
             <div style={styles.roleIcon}>👨‍🏫</div>
-
-            <h3 style={styles.roleTitle}>
-              Faculty
-            </h3>
-
+            <h3 style={styles.roleTitle}>Faculty</h3>
             <p style={styles.roleDescription}>
               Review projects and
               <br />
               provide feedback
             </p>
-
-            <div style={styles.arrow}>
-              →
-            </div>
+            <div style={styles.arrow}>→</div>
           </div>
 
-          {/* ADMIN */}
           <div
             onClick={() => setRole("Admin")}
             style={{
               ...styles.roleCard,
-              ...(role === "Admin"
-                ? styles.adminActive
-                : {}),
+              ...(role === "Admin" ? styles.adminActive : {}),
             }}
           >
             <div style={styles.roleIcon}>⚙️</div>
-
-            <h3 style={styles.roleTitle}>
-              Admin
-            </h3>
-
+            <h3 style={styles.roleTitle}>Admin</h3>
             <p style={styles.roleDescription}>
               Manage users and
               <br />
               system settings
             </p>
-
-            <div style={styles.arrow}>
-              →
-            </div>
+            <div style={styles.arrow}>→</div>
           </div>
-
         </div>
 
-        {/* LOGIN BOX */}
         <div style={styles.loginBox}>
-
-          {/* STUDENT INPUT */}
           {role === "Student" && (
             <div style={styles.inputBox}>
               <span style={styles.inputIcon}>👤</span>
-
               <input
                 type="text"
-                placeholder="Email / Register Number"
+                placeholder="Register Number (e.g., U23CS0133)"
                 value={registerNumber}
                 onChange={(e) =>
                   setRegisterNumber(e.target.value)
@@ -647,57 +967,44 @@ if (!match || Number(match[1]) < 23) {
             </div>
           )}
 
-          {/* FACULTY INPUT */}
           {role === "Faculty" && (
             <div style={styles.inputBox}>
               <span style={styles.inputIcon}>👤</span>
-
               <input
                 type="text"
                 placeholder="Faculty ID"
                 value={facultyId}
-                onChange={(e) =>
-                  setFacultyId(e.target.value)
-                }
+                onChange={(e) => setFacultyId(e.target.value)}
                 style={styles.input}
               />
             </div>
           )}
 
-          {/* ADMIN INPUT */}
           {role === "Admin" && (
             <div style={styles.inputBox}>
               <span style={styles.inputIcon}>👤</span>
-
               <input
                 type="text"
                 placeholder="Admin Username"
                 value={username}
-                onChange={(e) =>
-                  setUsername(e.target.value)
-                }
+                onChange={(e) => setUsername(e.target.value)}
                 style={styles.input}
               />
             </div>
           )}
 
-          {/* PASSWORD */}
           <div style={styles.inputBox}>
             <span style={styles.inputIcon}>🔒</span>
-
             <input
               type="password"
               placeholder="Password"
-              autoComplete="new-password"
+              autoComplete="current-password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
+              onChange={(e) => setPassword(e.target.value)}
               style={styles.input}
             />
           </div>
 
-          {/* LOGIN BUTTON */}
           <button
             onClick={handleLogin}
             style={styles.loginButton}
@@ -705,26 +1012,21 @@ if (!match || Number(match[1]) < 23) {
             Login
           </button>
 
-          {/* REGISTER */}
           {role === "Student" && (
-          <p style={styles.registerText}>
-  Don't have an account?
-  <span
-    style={styles.registerLink}
-    onClick={()=>setShowRegister(true)}
-  >
-    &nbsp;Register
-  </span>
-</p>
+            <p style={styles.registerText}>
+              Don't have an account?{" "}
+              <span
+                style={styles.registerLink}
+                onClick={() => setShowRegister(true)}
+              >
+                Register
+              </span>
+            </p>
           )}
-
         </div>
-
       </div>
 
-      {/* RIGHT SIDE */}
       <div style={styles.rightSection}>
-
         <div style={styles.overlay}>
           <h2 style={styles.rightTitle}>
             Better Projects,
@@ -738,12 +1040,12 @@ if (!match || Number(match[1]) < 23) {
             originality in student projects.
           </p>
         </div>
-
       </div>
-
     </div>
   );
 }
+
+// PROJECT FORM STYLES
 const formLabelStyle = {
   color: "#334155",
   fontSize: "14px",
@@ -764,65 +1066,257 @@ const formInputStyle = {
   background: "#ffffff",
 };
 
-const registrationStyles = {
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    color: "#334155",
-    fontSize: "14px",
-    fontWeight: "600",
-  },
-  input: {
-    display: "block",
-    width: "100%",
-    height: "48px",
-    padding: "0 14px",
-    marginBottom: "20px",
+const projectStyles = {
+  page: {
+    minHeight: "100vh",
+    background: "#f5f8fc",
+    padding: "30px 16px",
     boxSizing: "border-box",
-    border: "1px solid #cbd5e1",
-    borderRadius: "10px",
-    outline: "none",
-    fontSize: "15px",
-    background: "#f8fafc",
-    color: "#1e293b",
+    fontFamily: "Arial, sans-serif",
   },
-  registerButton: {
-    width: "100%",
-    minHeight: "50px",
-    marginTop: "6px",
+  card: {
+    maxWidth: "800px",
+    margin: "0 auto",
+    padding: "30px",
+    background: "#ffffff",
+    border: "1px solid #dbe5f0",
+    borderRadius: "14px",
+    boxShadow: "0 8px 25px rgba(20,50,80,0.08)",
+    boxSizing: "border-box",
+  },
+  backButton: {
+    padding: "10px 16px",
+    background: "#234b6b",
+    color: "#fff",
     border: "none",
-    borderRadius: "10px",
-    background: "linear-gradient(90deg, #2563eb, #7c3aed)",
+    borderRadius: "7px",
+    cursor: "pointer",
+  },
+  title: {
+    textAlign: "center",
+    color: "#234b6b",
+    fontSize: "32px",
+    margin: "25px 0 8px",
+  },
+  subtitle: {
+    textAlign: "center",
+    color: "#64748b",
+    marginBottom: "28px",
+  },
+  submitButton: {
+    padding: "14px",
+    background: "#234b6b",
     color: "#ffffff",
+    border: "none",
+    borderRadius: "7px",
     fontSize: "16px",
     fontWeight: "bold",
     cursor: "pointer",
-    boxShadow: "0 5px 14px rgba(79, 70, 229, 0.22)",
-  },
-  backButton: {
-    width: "100%",
-    minHeight: "46px",
-    marginTop: "12px",
-    border: "1px solid #c7d2fe",
-    borderRadius: "10px",
-    background: "#eef2ff",
-    color: "#4338ca",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
+    marginTop: "8px",
   },
 };
-const styles = {
 
+// STUDENT REGISTRATION STYLES - NEW DESIGN
+const registrationStyles = {
   page: {
     minHeight: "100vh",
     display: "flex",
-    fontFamily:
-      "Arial, Helvetica, sans-serif",
-    background: "#f7faff",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: "24px 16px",
+    boxSizing: "border-box",
+    background:
+      "linear-gradient(135deg, #eff6ff 0%, #eef2ff 55%, #f5f3ff 100%)",
+    fontFamily: "Arial, sans-serif",
   },
 
-  /* LEFT */
+  card: {
+    width: "100%",
+    maxWidth: "680px",
+    padding: "30px",
+    boxSizing: "border-box",
+    background: "#ffffff",
+    borderRadius: "18px",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 12px 40px rgba(30,58,138,0.10)",
+  },
+
+  header: {
+    textAlign: "center",
+    marginBottom: "25px",
+  },
+
+  logo: {
+    width: "52px",
+    height: "52px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: "0 auto 12px",
+    background: "#eef2ff",
+    borderRadius: "14px",
+    fontSize: "27px",
+  },
+
+  heading: {
+    margin: "0 0 8px",
+    color: "#1e3a8a",
+    fontSize: "26px",
+    fontWeight: "700",
+  },
+
+  subtitle: {
+    color: "#64748b",
+    fontSize: "14px",
+    margin: 0,
+    lineHeight: "1.5",
+  },
+
+  twoColumns: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
+    gap: "16px",
+  },
+
+  field: {
+    marginBottom: "17px",
+    minWidth: 0,
+  },
+
+  label: {
+    display: "block",
+    marginBottom: "7px",
+    color: "#334155",
+    fontSize: "13px",
+    fontWeight: "600",
+    textAlign: "left",
+  },
+
+  input: {
+    display: "block",
+    width: "100%",
+    height: "44px",
+    padding: "0 13px",
+    boxSizing: "border-box",
+    border: "1px solid #cbd5e1",
+    borderRadius: "9px",
+    outlineColor: "#6366f1",
+    fontSize: "14px",
+    background: "#f8fafc",
+    color: "#1e293b",
+  },
+
+  inlineRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+
+  otpButton: {
+    height: "44px",
+    padding: "0 16px",
+    border: "none",
+    borderRadius: "9px",
+    background: "#4f46e5",
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: "600",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+
+  verifyButton: {
+    height: "44px",
+    padding: "0 16px",
+    border: "none",
+    borderRadius: "9px",
+    background: "#16a34a",
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: "600",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+
+  otpSection: {
+    padding: "15px",
+    marginBottom: "18px",
+    background: "#f0f7ff",
+    border: "1px solid #dbeafe",
+    borderRadius: "10px",
+  },
+
+  success: {
+    color: "#15803d",
+    fontSize: "13px",
+    fontWeight: "600",
+    margin: "9px 0 0",
+  },
+
+  passwordWrapper: {
+    position: "relative",
+  },
+
+  showButton: {
+    position: "absolute",
+    right: "12px",
+    top: "13px",
+    border: "none",
+    background: "transparent",
+    color: "#4f46e5",
+    cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: "600",
+  },
+
+  hint: {
+    fontSize: "11px",
+    color: "#64748b",
+    margin: "6px 0 12px",
+    lineHeight: "1.5",
+  },
+
+  registerButton: {
+    width: "100%",
+    height: "47px",
+    marginTop: "12px",
+    border: "none",
+    borderRadius: "9px",
+    background:
+      "linear-gradient(90deg, #2563eb, #6366f1)",
+    color: "#ffffff",
+    fontSize: "15px",
+    fontWeight: "700",
+    cursor: "pointer",
+    boxShadow: "0 5px 14px rgba(79,70,229,0.18)",
+  },
+
+  loginText: {
+    textAlign: "center",
+    marginTop: "20px",
+    color: "#64748b",
+    fontSize: "13px",
+  },
+
+  loginLink: {
+    border: "none",
+    background: "transparent",
+    color: "#4f46e5",
+    fontSize: "13px",
+    fontWeight: "700",
+    cursor: "pointer",
+  },
+};
+
+// MAIN LOGIN PAGE STYLES
+const styles = {
+  page: {
+    minHeight: "100vh",
+    display: "flex",
+    fontFamily: "Arial, Helvetica, sans-serif",
+    background: "#f7faff",
+  },
 
   leftSection: {
     width: "56%",
@@ -928,15 +1422,12 @@ const styles = {
     fontSize: "22px",
   },
 
-  /* LOGIN */
-
   loginBox: {
     marginTop: "38px",
     background: "#ffffff",
     padding: "22px",
     borderRadius: "12px",
-    boxShadow:
-      "0 4px 18px rgba(20,60,100,0.08)",
+    boxShadow: "0 4px 18px rgba(20,60,100,0.08)",
   },
 
   inputBox: {
@@ -990,8 +1481,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  /* RIGHT */
-
   rightSection: {
     width: "44%",
     minHeight: "750px",
@@ -1025,7 +1514,6 @@ const styles = {
     lineHeight: "1.6",
     marginTop: "30px",
   },
-
 };
 
 export default App;

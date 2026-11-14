@@ -18,8 +18,8 @@ const projectDetailFields = [
   ["Expected Outcome", ["expectedOutcome", "outcome"]],
 ];
 
-const getProjectDetail = (project, possibleKeys) => {
-  for (const key of possibleKeys) {
+const getProjectDetail = (project, keys) => {
+  for (const key of keys) {
     const value = project?.[key];
 
     if (Array.isArray(value)) {
@@ -40,15 +40,18 @@ const getProjectDetail = (project, possibleKeys) => {
       return value.trim();
     }
 
-    if (typeof value === "number") {
-      return String(value);
-    }
+    if (typeof value === "number") return String(value);
   }
 
   return "";
 };
 
-export default function FacultyDashboard({ faculty, onLogout }) {
+const formatScore = (score) => {
+  const number = Number(score);
+  return Number.isFinite(number) ? number : 0;
+};
+
+export default function FacultyDashboard({ faculty, onLogout, socket }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,21 +81,54 @@ export default function FacultyDashboard({ faculty, onLogout }) {
       const response = await fetch(API);
 
       if (!response.ok) {
-        throw new Error("Failed to load projects");
+        throw new Error("Failed to load projects.");
       }
 
       const data = await response.json();
-      setProjects(data);
+
+      setProjects(Array.isArray(data) ? data : []);
       setError("");
-    } catch {
+    } catch (err) {
       setError("Projects load avvaledu. Backend check cheyyi.");
     } finally {
       setLoading(false);
     }
   };
+    useEffect(() => {
+    if (!socket) return;
 
-  const statusOf = (project) => project.status || "Pending";
+    const handleNewProject = (data) => {
+      const newProject = data?.project;
 
+      if (!newProject?._id) return;
+
+      setProjects((previousProjects) => {
+        const alreadyExists = previousProjects.some(
+          (project) => project._id === newProject._id
+        );
+
+        if (alreadyExists) {
+          return previousProjects.map((project) =>
+            project._id === newProject._id
+              ? { ...project, ...newProject }
+              : project
+          );
+        }
+
+        return [newProject, ...previousProjects];
+      });
+
+      console.log("New project received:", newProject.title);
+    };
+
+    socket.on("newProjectSubmitted", handleNewProject);
+
+    return () => {
+      socket.off("newProjectSubmitted", handleNewProject);
+    };
+  }, [socket]);
+const statusOf = (project) =>
+  project?.status || "Pending";
   const pending = projects.filter(
     (project) => statusOf(project) === "Pending"
   ).length;
@@ -130,6 +166,10 @@ export default function FacultyDashboard({ faculty, onLogout }) {
     setStatusError("");
   };
 
+  // ==========================================
+  // PROJECT ANALYSIS API
+  // ==========================================
+
   const runSimilarityAnalysis = async (project) => {
     setSelectedProject(project);
     setSelectedMatch(null);
@@ -160,7 +200,7 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
       if (!response.ok || data.success === false) {
         throw new Error(
-          data.message || "Similarity analysis failed."
+          data.message || "Project analysis failed."
         );
       }
 
@@ -173,6 +213,10 @@ export default function FacultyDashboard({ faculty, onLogout }) {
       setSimilarityLoading(false);
     }
   };
+
+  // ==========================================
+  // APPROVE / REJECT PROJECT
+  // ==========================================
 
   const updateProjectStatus = async (status) => {
     if (!selectedProject?._id || statusUpdating) return;
@@ -191,7 +235,7 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
     try {
       const response = await fetch(
-        API + "/" + selectedProject._id + "/status",
+        `${API}/${selectedProject._id}/status`,
         {
           method: "PATCH",
           headers: {
@@ -215,36 +259,50 @@ export default function FacultyDashboard({ faculty, onLogout }) {
         throw new Error("Updated project data was not returned.");
       }
 
-      setProjects((previousProjects) =>
-        previousProjects.map((project) =>
+      setProjects((previous) =>
+        previous.map((project) =>
           project._id === updatedProject._id
             ? { ...project, ...updatedProject }
             : project
         )
       );
 
-      setSelectedProject((previousProject) =>
-        previousProject?._id === updatedProject._id
-          ? { ...previousProject, ...updatedProject }
-          : previousProject
+      setSelectedProject((previous) =>
+        previous?._id === updatedProject._id
+          ? { ...previous, ...updatedProject }
+          : previous
       );
 
-      setStatusMessage("Project " + status + " successfully!");
+      setStatusMessage(`Project ${status} successfully!`);
     } catch (err) {
       setStatusError(
-        err.message || "Status update failed. Backend check cheyyi."
+        err.message || "Status update failed."
       );
     } finally {
       setStatusUpdating(false);
     }
   };
 
-  // Similarity Analysis page
+  // ==========================================
+  // PROJECT ANALYSIS REPORT
+  // ==========================================
+
   if (selectedProject) {
+    const novelty = similarityReport?.noveltyAnalysis;
+    const differentiation =
+      similarityReport?.differentiationAnalysis;
+
+    const noveltyScore = Math.min(
+      100,
+      Math.max(0, formatScore(novelty?.noveltyScore))
+    );
+
     return (
       <div className="faculty-similarity-page">
         {selectedMatch ? (
           <>
+            {/* MATCHING PROJECT DETAILS */}
+
             <div className="similarity-page-header">
               <h1>Matching Project Details</h1>
 
@@ -298,13 +356,23 @@ export default function FacultyDashboard({ faculty, onLogout }) {
                     </section>
                   );
                 })}
+
+                {!projectDetailFields.some(([, keys]) =>
+                  getProjectDetail(selectedMatch, keys)
+                ) && (
+                  <p>
+                    Detailed project information is not available.
+                  </p>
+                )}
               </div>
             </div>
           </>
         ) : (
           <>
+            {/* REPORT HEADER */}
+
             <div className="similarity-page-header">
-              <h1>Similarity Analysis Report</h1>
+              <h1>Project Analysis Report</h1>
 
               <button
                 type="button"
@@ -321,7 +389,7 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
             {similarityLoading && (
               <p className="faculty-message">
-                Analyzing project similarity...
+                Analyzing project...
               </p>
             )}
 
@@ -343,181 +411,369 @@ export default function FacultyDashboard({ faculty, onLogout }) {
               </p>
             )}
 
+            {/* ======================================
+                SIMILARITY ANALYSIS
+            ====================================== */}
+
+          
+
+{similarityReport && (
+  <div className="similarity-report-layout">
+    <h2 className="similarity-project-heading">
+      {similarityReport.analyzedProject?.title ||
+        selectedProject.title ||
+        "Selected Project"}
+    </h2>
+
+    <div className="similarity-three-columns">
+      {/* COLUMN 1: OVERALL SIMILARITY */}
+      <section className="similarity-overall-section">
+        <h3>Overall Similarity</h3>
+
+        <div className="similarity-circle-area">
+          <div
+            className="similarity-circle"
+            style={{
+              "--score": `${Math.min(
+                100,
+                Math.max(
+                  0,
+                  formatScore(similarityReport.overallSimilarity)
+                )
+              )}%`,
+            }}
+          >
+            <div className="similarity-circle-inner">
+              <strong>
+                {similarityReport.overallSimilarity ?? 0}%
+              </strong>
+              <span>Similarity Score</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* COLUMN 2: CATEGORY-WISE SIMILARITY */}
+      <section className="similarity-category-section">
+        <h3>Category-wise Similarity</h3>
+
+        {Object.entries(
+          similarityReport.fieldScores || {}
+        ).map(([field, score]) => (
+          <div className="similarity-field" key={field}>
+            <div className="similarity-field-header">
+              <span>
+                {field.replace(/([A-Z])/g, " $1")}
+              </span>
+              <strong>{score}%</strong>
+            </div>
+
+            <div className="similarity-track">
+              <div
+                className="similarity-fill"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(0, formatScore(score))
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* COLUMN 3: TOP 5 SIMILAR PROJECTS */}
+      <section className="similarity-matches-card">
+        <h3>Top 5 Similar Projects</h3>
+
+        {similarityReport.matchingProjects?.length > 0 ? (
+          similarityReport.matchingProjects
+            .slice(0, 5)
+            .map((match, index) => (
+              <article
+                className="similarity-match-row"
+                key={
+                  match.projectId ||
+                  match.projectTitle ||
+                  index
+                }
+              >
+                <div className="similarity-match-main">
+                  <span className="similarity-match-number">
+                    {index + 1}
+                  </span>
+
+                  <div className="similarity-match-info">
+                    <h3>
+                      {match.projectTitle ||
+                        match.title ||
+                        "Untitled Project"}
+                    </h3>
+
+                    {match.domain && (
+                      <span className="similarity-match-domain">
+                        {match.domain}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="similarity-match-actions">
+                  <strong className="similarity-score">
+                    {match.overallSimilarity ?? 0}%
+                  </strong>
+
+                  <button
+                    type="button"
+                    className="similarity-view-button"
+                    onClick={() => setSelectedMatch(match)}
+                  >
+                    View Details
+                  </button>
+                </div>
+              </article>
+            ))
+        ) : (
+          <p>No matching projects found.</p>
+        )}
+      </section>
+    </div>
+
+    {/* FACULTY APPROVE / REJECT BUTTONS */}
+    <div
+      className="similarity-faculty-decision-area"
+      style={{
+        padding: "16px 24px 24px",
+        borderTop: "1px solid #e1e7f5",
+      }}
+    >
+      <div className="similarity-decision-buttons">
+        <button
+          type="button"
+          className="similarity-approve-btn"
+          disabled={
+            statusUpdating ||
+            statusOf(selectedProject) !== "Pending"
+          }
+          onClick={() => updateProjectStatus("Approved")}
+        >
+          {statusUpdating ? "Updating..." : "✓ Approve"}
+        </button>
+
+        <button
+          type="button"
+          className="similarity-reject-btn"
+          disabled={
+            statusUpdating ||
+            statusOf(selectedProject) !== "Pending"
+          }
+          onClick={() => updateProjectStatus("Rejected")}
+        >
+          {statusUpdating ? "Updating..." : "✕ Reject"}
+        </button>
+      </div>
+
+      {statusOf(selectedProject) !== "Pending" && (
+        <p className="similarity-reviewed-status">
+          This project has already been{" "}
+          {statusOf(selectedProject).toLowerCase()}.
+        </p>
+      )}
+    </div>
+  </div>
+)}
+
+
+            {/* ======================================
+                NOVELTY + DIFFERENTIATION
+                BOTH INSIDE SAME GRID
+            ====================================== */}
+
             {similarityReport && (
-              <div className="similarity-report-layout">
-                <section className="similarity-left-panel">
-                  <article className="similarity-selected-card">
-                    <h2>
-                      {similarityReport.analyzedProject?.title ||
-                        selectedProject.title ||
-                        "Selected Project"}
-                    </h2>
+              <div className="analysis-bottom-grid">
 
-                    <div className="similarity-left-content">
-                      <div className="similarity-overall-section">
-                        <h3>Overall Similarity</h3>
+                {/* ==================================
+                    NOVELTY ANALYSIS - LEFT
+                ================================== */}
 
-                        <div className="similarity-circle-area">
-                          <div
-                            className="similarity-circle"
-                            style={{
-                              "--score":
-                                String(
-                                  Math.min(
-                                    100,
-                                    Math.max(
-                                      0,
-                                      Number(
-                                        similarityReport.overallSimilarity
-                                      ) || 0
-                                    )
-                                  )
-                                ) + "%",
-                            }}
-                          >
-                            <div className="similarity-circle-inner">
-                              <strong>
-                                {similarityReport.overallSimilarity ?? 0}%
-                              </strong>
-                              <span>Overall Score</span>
-                            </div>
+                <section className="novelty-analysis-card">
+                  <h2>💡 Novelty Analysis</h2>
+
+                  {novelty ? (
+                    <div className="novelty-content">
+
+                      {/* NOVELTY CIRCLE */}
+
+                      <div className="novelty-score-section">
+                        <h3>Novelty Score</h3>
+
+                        <div
+                          className="novelty-circle"
+                          style={{
+                            "--novelty-score": `${noveltyScore}%`,
+                          }}
+                        >
+                          <div className="novelty-circle-inner">
+                            <span className="novelty-level">
+                              {novelty.noveltyLevel || "N/A"}
+                            </span>
+
+                            <span className="novelty-percentage">
+                              {novelty.noveltyScore == null
+                                ? "N/A"
+                                : `${novelty.noveltyScore}%`}
+                            </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="similarity-category-section">
-                        <h3>Category-wise Similarity</h3>
+                      {/* UNIQUE FEATURES */}
 
-                        {Object.entries(
-                          similarityReport.fieldScores || {}
-                        ).map(([field, score]) => (
-                          <div
-                            className="similarity-field"
-                            key={field}
-                          >
-                            <div className="similarity-field-header">
-                              <span>
-                                {field.replace(/([A-Z])/g, " $1")}
-                              </span>
+                      <div className="novelty-features-section">
+                        <h3>Newly Identified Features</h3>
 
-                              <strong>{score}%</strong>
+                        <div className="novelty-feature-list">
+                          {novelty.uniqueFeatures?.length > 0 ? (
+                            novelty.uniqueFeatures.map(
+                              (feature, index) => (
+                                <div
+                                  className="novelty-feature-item"
+                                  key={index}
+                                >
+                                  <span className="novelty-feature-icon">
+                                    ✓
+                                  </span>
+
+                                  <span>{feature}</span>
+                                </div>
+                              )
+                            )
+                          ) : (
+                            <div className="novelty-feature-item">
+                              No unique features identified.
                             </div>
-
-                            <div className="similarity-track">
-                              <div
-                                className="similarity-fill"
-                                style={{
-                                  width:
-                                    String(
-                                      Math.min(
-                                        100,
-                                        Math.max(
-                                          0,
-                                          Number(score) || 0
-                                        )
-                                      )
-                                    ) + "%",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    <div className="similarity-decision-buttons">
-                      <button
-                        type="button"
-                        className="similarity-approve-btn"
-                        disabled={
-                          statusUpdating ||
-                          statusOf(selectedProject) !== "Pending"
-                        }
-                        onClick={() =>
-                          updateProjectStatus("Approved")
-                        }
-                      >
-                        {statusUpdating ? "Updating..." : "✓ Approve"}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="similarity-reject-btn"
-                        disabled={
-                          statusUpdating ||
-                          statusOf(selectedProject) !== "Pending"
-                        }
-                        onClick={() =>
-                          updateProjectStatus("Rejected")
-                        }
-                      >
-                        {statusUpdating ? "Updating..." : "✕ Reject"}
-                      </button>
-                    </div>
-
-                    {statusOf(selectedProject) !== "Pending" && (
-                      <p className="similarity-reviewed-status">
-                        This project has already been{" "}
-                        {statusOf(selectedProject).toLowerCase()}.
-                      </p>
-                    )}
-                  </article>
-                </section>
-
-                <section className="similarity-matches-card">
-                  <h2>Top Matching Projects</h2>
-
-                  {similarityReport.matchingProjects?.length > 0 ? (
-                    similarityReport.matchingProjects
-                      .slice(0, 5)
-                      .map((match, index) => (
-                        <article
-                          className="similarity-match-row"
-                          key={
-                            match.projectId ||
-                            match.projectTitle ||
-                            index
-                          }
-                        >
-                          <div>
-                            <span className="similarity-match-number">
-                              {index + 1}
-                            </span>
-
-                            <div className="similarity-match-info">
-                              <h3>
-                                {match.projectTitle ||
-                                  match.title ||
-                                  "Untitled Project"}
-                              </h3>
-
-                              {match.domain && (
-                                <span className="similarity-match-domain">
-                                  {match.domain}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="similarity-match-actions">
-                            <strong className="similarity-score">
-                              {match.overallSimilarity ?? 0}%
-                            </strong>
-
-                            <button
-                              type="button"
-                              className="similarity-view-button"
-                              onClick={() => setSelectedMatch(match)}
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </article>
-                      ))
                   ) : (
-                    <p>No matching projects found.</p>
+                    <div className="novelty-content">
+                      <p>
+                        Novelty analysis result is not available.
+                      </p>
+                    </div>
                   )}
                 </section>
+
+                {/* ==================================
+                    DIFFERENTIATION ANALYSIS - RIGHT
+                ================================== */}
+
+                <section className="differentiation-analysis-card">
+                  <h2>🔍 Differentiation Analysis</h2>
+
+                  {differentiation?.mostSimilarProject ? (
+                    <div className="differentiation-content">
+
+                      <h3 className="differentiation-subtitle">
+                        Comparison with Highest Matching Project
+                      </h3>
+
+                      {/* PROJECT VS PROJECT */}
+
+                      <div className="differentiation-projects">
+
+                        <div className="differentiation-project-box">
+                          <small>Submitted Project</small>
+
+                          <strong>
+                            {similarityReport.analyzedProject?.title ||
+                              selectedProject?.title ||
+                              "Selected Project"}
+                          </strong>
+                        </div>
+
+                        <div className="differentiation-vs">
+                          VS
+                        </div>
+
+                        <div className="differentiation-project-box match">
+                          <small>Highest Matching Project</small>
+
+                          <strong>
+                            {
+                              differentiation.mostSimilarProject
+                                .projectTitle
+                            }
+                          </strong>
+
+                          <small>
+                            Similarity:{" "}
+                            {
+                              differentiation.mostSimilarProject
+                                .overallSimilarity
+                            }%
+                          </small>
+                        </div>
+                      </div>
+
+                      {/* FEATURE COMPARISON TABLE */}
+
+                      <div className="differentiation-comparison">
+
+                        {/* COMMON FEATURES */}
+
+                        <div className="differentiation-row">
+                          <div className="differentiation-row-label common">
+                            ✓ Common Features
+                          </div>
+
+                          <div className="differentiation-row-value">
+                            {differentiation.commonFeatures?.length > 0
+                              ? differentiation.commonFeatures.join(", ")
+                              : "No common features found."}
+                          </div>
+                        </div>
+
+                        {/* ADDITIONAL FEATURES */}
+
+                        <div className="differentiation-row">
+                          <div className="differentiation-row-label additional">
+                            + Additional Features
+                          </div>
+
+                          <div className="differentiation-row-value">
+                            {differentiation.additionalFeatures?.length > 0
+                              ? differentiation.additionalFeatures.join(", ")
+                              : "No additional features found."}
+                          </div>
+                        </div>
+
+                        {/* DIFFERENT FEATURES */}
+
+                        <div className="differentiation-row">
+                          <div className="differentiation-row-label different">
+                            ⇄ Different Features
+                          </div>
+
+                          <div className="differentiation-row-value">
+                            {differentiation.differentFeatures?.length > 0
+                              ? differentiation.differentFeatures.join(", ")
+                              : "No different features found."}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="differentiation-content">
+                      <p>
+                        Differentiation analysis result is not available.
+                      </p>
+                    </div>
+                  )}
+                </section>
+
               </div>
             )}
           </>
@@ -526,7 +782,10 @@ export default function FacultyDashboard({ faculty, onLogout }) {
     );
   }
 
-  // Main Faculty Dashboard
+  // ==========================================
+  // MAIN FACULTY DASHBOARD
+  // ==========================================
+
   return (
     <div className="faculty-layout">
       <header className="faculty-topbar">
@@ -536,6 +795,7 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
         <div className="faculty-user">
           <span className="faculty-avatar">F</span>
+
           <div>
             <strong>{facultyName}</strong>
             <small>Faculty</small>
@@ -565,7 +825,10 @@ export default function FacultyDashboard({ faculty, onLogout }) {
           ))}
         </nav>
 
-        <button className="faculty-logout" onClick={onLogout}>
+        <button
+          className="faculty-logout"
+          onClick={onLogout}
+        >
           ⇥ <span>Logout</span>
         </button>
       </aside>
@@ -573,12 +836,18 @@ export default function FacultyDashboard({ faculty, onLogout }) {
       <main className="faculty-main">
         <section className="faculty-welcome">
           <h2>Welcome, {facultyName}!</h2>
-          <p>Review and manage student-submitted projects.</p>
+
+          <p>
+            Review and manage student-submitted projects.
+          </p>
         </section>
+
+        {/* PROJECT STATUS CARDS */}
 
         {(activePage === "Dashboard" ||
           activePage === "My Reviews") && (
           <section className="faculty-stats">
+
             <div className="faculty-stat total">
               <span>▤</span>
               <div>
@@ -614,8 +883,11 @@ export default function FacultyDashboard({ faculty, onLogout }) {
                 <small>Not approved</small>
               </div>
             </div>
+
           </section>
         )}
+
+        {/* STUDENT PROJECTS TABLE */}
 
         {(activePage === "Dashboard" ||
           activePage === "View Projects") && (
@@ -650,9 +922,13 @@ export default function FacultyDashboard({ faculty, onLogout }) {
             </div>
 
             {loading ? (
-              <p className="faculty-message">Loading projects...</p>
+              <p className="faculty-message">
+                Loading projects...
+              </p>
             ) : error ? (
-              <p className="faculty-message error">{error}</p>
+              <p className="faculty-message error">
+                {error}
+              </p>
             ) : (
               <div className="faculty-table-wrap">
                 <table className="faculty-table">
@@ -670,11 +946,13 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
                   <tbody>
                     {filteredProjects.map((project, index) => (
-                      <tr key={project._id}>
+                      <tr key={project._id || index}>
                         <td>{index + 1}</td>
                         <td>{project.title}</td>
                         <td>{project.studentName || "—"}</td>
-                        <td>{project.studentRegisterNumber || "—"}</td>
+                        <td>
+                          {project.studentRegisterNumber || "—"}
+                        </td>
                         <td>{project.domain || "—"}</td>
 
                         <td>
@@ -718,12 +996,9 @@ export default function FacultyDashboard({ faculty, onLogout }) {
                             onClick={() =>
                               runSimilarityAnalysis(project)
                             }
-                            disabled={
-                              similarityLoading &&
-                              selectedProject?._id === project._id
-                            }
+                            disabled={similarityLoading}
                           >
-                            Similarity Analysis
+                            Project Analysis
                           </button>
                         </td>
                       </tr>
@@ -731,7 +1006,10 @@ export default function FacultyDashboard({ faculty, onLogout }) {
 
                     {filteredProjects.length === 0 && (
                       <tr>
-                        <td colSpan="7" className="faculty-empty">
+                        <td
+                          colSpan="7"
+                          className="faculty-empty"
+                        >
                           No student projects found.
                         </td>
                       </tr>

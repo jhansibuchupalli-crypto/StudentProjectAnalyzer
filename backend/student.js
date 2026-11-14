@@ -1,35 +1,49 @@
+
 const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
 
- 
-registerNumber: {
-  type: String,
-  required: true,
-  unique: true,
-  validate: {
-    validator: function(value) {
-      const regex = /^U(\d{2})CS0(?!000)\d{3}$/;
-      const match = regex.exec(value);
+  registerNumber: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    validate: {
+      validator: function (value) {
+        const regex = /^U23(CS|AI|ID|IB|DS|ML)(\d{4,})$/;
+        const match = regex.exec(value);
 
-      if (!match) {
-        return false;
-      }
+        return match !== null && /[1-9]/.test(match[2]);
+      },
+      message:
+        "Invalid Register Number! Only U23 batch students from CS, AI, ID, IB, DS, ML branches are allowed."
+    }
+  },
 
-      const batchYear = Number(match[1]);
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    sparse: true,
+    validate: {
+      validator: function (value) {
+        if (!value) return true;
 
-      return batchYear >= 23;
-    },
-    message: "Invalid Register Number! Use U23CS0001 to U23CS0999 or a future batch."
-  }
-}
-,
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      },
+      message: "Please enter a valid email address."
+    }
+  },
 
-
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
 
   password: {
     type: String,

@@ -1,162 +1,233 @@
 
 /* =========================================
-   SIMILARITY ANALYSIS REPORT - MAIN LAYOUT
-========================================= */
+   PROJECT ANALYSIS REPORT - FINAL CSS
+   SKY BLUE + LAVENDER THEME
+   ========================================= */
 
-.student-dashboard:has(.similarity-page-header) {
+.student-dashboard:has(.similarity-page-header),
+.faculty-similarity-page {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(135deg, #f5f3ff, #eff6ff 55%, #fdf2f8);
+  box-sizing: border-box;
   color: #30264a;
+  background: linear-gradient(
+    135deg,
+    #e0f2fe 0%,
+    #eef2ff 55%,
+    #ede9fe 100%
+  );
 }
 
 .student-dashboard:has(.similarity-page-header) .sd-main {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 26px;
+  padding: 14px 20px;
   box-sizing: border-box;
 }
 
 .student-dashboard:has(.similarity-page-header) .sd-content {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1600px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
+.faculty-similarity-page {
+  padding: 14px 20px;
+}
+
 /* =========================================
-   HEADER
-========================================= */
+   REPORT HEADER
+   ========================================= */
 
 .similarity-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
+  padding: 13px 20px;
+  margin-bottom: 12px;
   box-sizing: border-box;
-  padding: 24px 30px;
-  margin-bottom: 22px;
-  border-radius: 20px;
-  color: #ffffff;
-  background: linear-gradient(120deg, #4c1d95, #7c3aed 55%, #a855f7);
-  box-shadow: 0 10px 28px rgba(91, 33, 182, 0.18);
+  border-radius: 15px;
+  color: white;
+  background: linear-gradient(
+    110deg,
+    #4c1d95,
+    #7c3aed,
+    #a855f7
+  );
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.15);
 }
 
 .similarity-page-header h1 {
   margin: 0;
-  color: #ffffff;
-  font-size: 28px;
-  line-height: 1.35;
+  color: white;
+  font-size: 23px;
+  font-weight: 750;
 }
 
 .similarity-page-header p {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   color: #f3e8ff;
-  line-height: 1.5;
 }
 
 .similarity-page-header .sd-primary {
-  padding: 11px 17px;
+  padding: 10px 16px;
   border: none;
-  border-radius: 10px;
-  background: #ffffff;
+  border-radius: 9px;
+  background: white;
   color: #6d28d9;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .similarity-page-header .sd-primary:hover {
   background: #f3e8ff;
-  transform: translateY(-1px);
+}
+
+.faculty-similarity-project-title {
+  margin: 8px 0 12px;
+  color: #25345c;
+  font-size: 19px;
+  text-align: center;
 }
 
 /* =========================================
-   TWO-COLUMN REPORT
-========================================= */
+   SIMILARITY ANALYSIS - SINGLE CARD
+   ========================================= */
 
 .similarity-report-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
-  gap: 22px;
-  align-items: stretch;
+  position: relative;
+  display: block;
   width: 100%;
-}
-
-.similarity-left-panel,
-.similarity-report-layout .similarity-matches-card {
-  min-width: 0;
+  min-height: 0;
+  margin: 10px 0 14px;
+  padding: 52px 0 0;
   box-sizing: border-box;
-  padding: 24px;
-  border: 1px solid #e9e2f7;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 8px 26px rgba(65, 43, 105, 0.07);
+  overflow: hidden;
+  border: 1px solid #e1e7f5;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 7px 24px rgba(70, 85, 145, 0.10);
 }
 
-.similarity-left-panel {
-  background: linear-gradient(155deg, #ffffff, #faf5ff);
+/* Gradient header */
+
+.similarity-report-layout::before {
+  content: "🔎  Similarity Analysis";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: linear-gradient(
+    110deg,
+    #2563eb,
+    #5145cf,
+    #6d28d9
+  );
+  color: white;
+  font-size: 21px;
+  font-weight: 700;
 }
 
-.similarity-report-layout .similarity-matches-card {
+/* Selected project title */
+
+.similarity-project-heading {
   margin: 0;
-  background: linear-gradient(155deg, #ffffff, #f0f9ff);
+  padding: 8px 16px 2px;
+  color: #25345c;
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 /* =========================================
-   SELECTED PROJECT
-========================================= */
+   THREE COLUMN LAYOUT
+   ========================================= */
 
-.similarity-left-panel .similarity-selected-card {
+.similarity-three-columns {
+  display: grid;
+  grid-template-columns:
+    minmax(170px, 0.65fr)
+    minmax(250px, 1.25fr)
+    minmax(370px, 1.65fr);
+  gap: 0;
+  align-items: stretch;
+  padding: 10px 12px 14px;
+}
+
+/* Remove individual card backgrounds */
+
+.similarity-three-columns > section,
+.similarity-report-layout
+.similarity-three-columns
+.similarity-matches-card {
+  min-width: 0;
   margin: 0;
-  padding: 0;
+  padding: 10px 16px;
+  box-sizing: border-box;
   border: none;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
 
-.similarity-selected-card h2 {
-  margin: 0 0 12px;
-  color: #4c1d95;
-  font-size: 22px;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
+/* Vertical dividers */
+
+.similarity-three-columns > section:not(:last-child) {
+  border-right: 1px solid #dce3f2;
 }
 
-.similarity-selected-card h3 {
-  margin: 16px 0 14px;
-  color: #6d28d9;
-  font-size: 18px;
+/* Column headings */
+
+.similarity-three-columns > section > h3 {
+  margin: 0 0 15px;
+  color: #263a6c;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
 }
 
 /* =========================================
-   OVERALL SIMILARITY CIRCLE
-========================================= */
+   COLUMN 1 - OVERALL SIMILARITY
+   ========================================= */
+
+.similarity-overall-section {
+  min-width: 0;
+  text-align: center;
+}
 
 .similarity-circle-area {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 0 18px;
+  padding: 0;
+  margin: 15px auto;
 }
 
 .similarity-circle {
   --score: 0%;
   display: grid;
   place-items: center;
-  width: 158px;
-  height: 158px;
+  width: 150px;
+  height: 150px;
   flex-shrink: 0;
   border-radius: 50%;
   background: conic-gradient(
     #8b5cf6 var(--score),
     #ede9fe var(--score)
   );
-  box-shadow: 0 8px 22px rgba(139, 92, 246, 0.16);
+  box-shadow: 0 7px 20px rgba(139, 92, 246, 0.14);
 }
 
 .similarity-circle-inner {
@@ -164,44 +235,45 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  width: 126px;
-  height: 126px;
-  box-sizing: border-box;
+  gap: 5px;
+  width: 122px;
+  height: 122px;
   border-radius: 50%;
-  background: #ffffff;
+  background: white;
   text-align: center;
 }
 
 .similarity-circle-inner strong {
   color: #7c3aed;
-  font-size: 30px;
+  font-size: 27px;
   font-weight: 800;
 }
 
 .similarity-circle-inner span {
-  max-width: 100px;
   color: #766b89;
   font-size: 12px;
-  line-height: 1.4;
 }
 
 /* =========================================
-   CATEGORY-WISE SIMILARITY
-========================================= */
+   COLUMN 2 - CATEGORY-WISE SIMILARITY
+   ========================================= */
+
+.similarity-category-section {
+  min-width: 0;
+}
 
 .similarity-field {
-  margin: 13px 0;
+  margin: 0 0 13px;
 }
 
 .similarity-field-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 7px;
+  gap: 10px;
+  margin-bottom: 6px;
   color: #504361;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .similarity-field-header span {
@@ -211,12 +283,12 @@
 .similarity-field-header strong {
   flex-shrink: 0;
   color: #6d28d9;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .similarity-track {
   width: 100%;
-  height: 9px;
+  height: 10px;
   overflow: hidden;
   border-radius: 20px;
   background: #eee8f8;
@@ -229,8 +301,7 @@
   transition: width 0.4s ease;
 }
 
-/* Different colors for category bars.
-   Colors are assigned by category position. */
+/* Category bar colors */
 
 .similarity-field:nth-of-type(1) .similarity-fill {
   background: linear-gradient(90deg, #7c3aed, #c4b5fd);
@@ -256,31 +327,35 @@
   background: linear-gradient(90deg, #0891b2, #67e8f9);
 }
 
-.similarity-field:nth-of-type(7) .similarity-fill {
-  background: linear-gradient(90deg, #9333ea, #d8b4fe);
-}
-
-.similarity-field:nth-of-type(8) .similarity-fill {
-  background: linear-gradient(90deg, #ca8a04, #fde047);
-}
-
 /* =========================================
-   TOP MATCHING PROJECTS
-========================================= */
+   COLUMN 3 - TOP 5 SIMILAR PROJECTS
+   ========================================= */
 
-.similarity-matches-card h2 {
-  margin: 0 0 12px;
-  color: #1e3a8a;
-  font-size: 22px;
-  line-height: 1.4;
+.similarity-report-layout
+.similarity-three-columns
+.similarity-matches-card {
+  display: block;
+  width: auto;
 }
 
-.similarity-match-row {
-  display: flex;
-  justify-content: space-between;
+.similarity-matches-card h2,
+.similarity-three-columns .similarity-matches-card > h3 {
+  margin: 0 0 15px;
+  color: #263a6c;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Each project in a single compact row */
+
+.similarity-three-columns .similarity-match-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  padding: 15px 0;
+  gap: 10px;
+  min-height: 0;
+  padding: 9px 0;
   border-bottom: 1px solid #e4eaf5;
 }
 
@@ -288,10 +363,12 @@
   border-bottom: none;
 }
 
-.similarity-match-row > div {
+/* Project number + name */
+
+.similarity-three-columns .similarity-match-main {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -301,31 +378,57 @@
   width: 34px;
   height: 34px;
   flex-shrink: 0;
-  border-radius: 10px;
+  border-radius: 9px;
   background: linear-gradient(135deg, #ede9fe, #dbeafe);
   color: #6d28d9;
-  font-weight: 800;
-}
-
-.similarity-match-row h3 {
-  margin: 0;
-  color: #334155;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-.similarity-match-row .similarity-score {
-  flex-shrink: 0;
-  padding: 7px 10px;
-  border-radius: 10px;
-  background: #f3e8ff;
-  color: #7e22ce;
   font-size: 15px;
   font-weight: 800;
 }
 
-/* Give matching project scores different colors */
+.similarity-match-info {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.similarity-three-columns .similarity-match-info h3 {
+  margin: 0 0 4px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.similarity-match-domain {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* SCORE + VIEW DETAILS SIDE BY SIDE */
+
+.similarity-three-columns .similarity-match-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.similarity-score {
+  flex-shrink: 0;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: #f3e8ff;
+  color: #7e22ce;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
 
 .similarity-match-row:nth-of-type(2) .similarity-score {
   background: #dbeafe;
@@ -347,254 +450,371 @@
   color: #c2410c;
 }
 
-.similarity-match-row:nth-of-type(6) .similarity-score {
-  background: #cffafe;
-  color: #0e7490;
-}
-
-/* =========================================
-   LOADING AND ERROR MESSAGES
-========================================= */
-
-.student-dashboard:has(.similarity-page-header) .sd-error {
-  margin-bottom: 18px;
-  padding: 14px 18px;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  background: #fff1f2;
-  color: #be123c;
-}
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 900px) {
-  .student-dashboard:has(.similarity-page-header) .sd-main {
-    padding: 20px;
-  }
-
-  .similarity-report-layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 16px;
-  }
-
-  .similarity-left-panel,
-  .similarity-report-layout .similarity-matches-card {
-    padding: 18px;
-  }
-
-  .similarity-circle {
-    width: 145px;
-    height: 145px;
-  }
-
-  .similarity-circle-inner {
-    width: 116px;
-    height: 116px;
-  }
-}
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 650px) {
-  .student-dashboard:has(.similarity-page-header) .sd-main {
-    padding: 12px;
-  }
-
-  .similarity-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border-radius: 16px;
-  }
-
-  .similarity-page-header h1 {
-    font-size: 23px;
-  }
-
-  .similarity-page-header .sd-primary {
-    white-space: normal;
-  }
-
-  .similarity-report-layout {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-
-  .similarity-left-panel,
-  .similarity-report-layout .similarity-matches-card {
-    padding: 18px;
-    border-radius: 16px;
-  }
-
-  .similarity-selected-card h2,
-  .similarity-matches-card h2 {
-    font-size: 19px;
-  }
-
-  .similarity-selected-card h3 {
-    font-size: 17px;
-  }
-
-  .similarity-circle {
-    width: 150px;
-    height: 150px;
-  }
-
-  .similarity-circle-inner {
-    width: 120px;
-    height: 120px;
-  }
-
-  .similarity-circle-inner strong {
-    font-size: 28px;
-  }
-
-  .similarity-match-row {
-    gap: 8px;
-    padding: 13px 0;
-  }
-
-  .similarity-match-row > div {
-    gap: 8px;
-  }
-
-  .similarity-match-row h3 {
-    font-size: 13px;
-  }
-
-  .similarity-match-row .similarity-score {
-    padding: 7px 8px;
-    font-size: 14px;
-  }
-}
-
-/* =========================================
-   OVERALL SCORE + CATEGORIES SIDE BY SIDE
-========================================= */
-
-.similarity-left-panel .similarity-selected-card h2 {
-  margin-bottom: 20px;
-}
-
-.similarity-left-content {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.similarity-overall-section,
-.similarity-category-section {
-  min-width: 0;
-}
-
-.similarity-overall-section {
-  padding: 16px 10px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #f5f3ff, #ede9fe);
-  text-align: center;
-}
-
-.similarity-overall-section h3,
-.similarity-category-section h3 {
-  margin: 0 0 16px;
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-.similarity-overall-section h3 {
-  color: #6d28d9;
-}
-
-.similarity-category-section h3 {
-  color: #2563eb;
-}
-
-.similarity-overall-section .similarity-circle-area {
-  padding: 8px 0;
-}
-
-.similarity-category-section .similarity-field {
-  margin: 16px 0;
-}
-
-.similarity-category-section .similarity-field-header {
-  font-size: 12px;
-}
-
-.similarity-category-section .similarity-track {
-  height: 9px;
-}
-
-/* Stack sections on small screens */
-
-@media (max-width: 650px) {
-  .similarity-left-content {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 20px;
-  }
-
-  .similarity-overall-section {
-    padding: 18px 12px;
-  }
-
-  .similarity-category-section .similarity-field {
-    margin: 14px 0;
-  }
-}
-
-/* =========================================
-   MATCHING PROJECT VIEW DETAILS
-========================================= */
-
-.similarity-match-info {
-  min-width: 0;
-}
-
-.similarity-match-domain {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
-.similarity-match-actions {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 8px;
-}
-
 .similarity-view-button {
-  padding: 8px 11px;
+  flex-shrink: 0;
+  padding: 7px 10px;
   border: 1px solid #c4b5fd;
   border-radius: 9px;
-  background: #ffffff;
+  background: white;
   color: #6d28d9;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 .similarity-view-button:hover {
   background: #6d28d9;
-  color: #ffffff;
+  color: white;
 }
 
+/* =========================================
+   FACULTY APPROVE / REJECT
+   ========================================= */
+
+.similarity-faculty-decision-area {
+  padding: 10px 18px 14px !important;
+  border-top: 1px solid #e1e7f5;
+}
+
+.similarity-decision-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.similarity-decision-buttons button {
+  min-width: 115px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.similarity-approve-btn {
+  background: #16a34a;
+}
+
+.similarity-approve-btn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.similarity-reject-btn {
+  background: #dc2626;
+}
+
+.similarity-reject-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.similarity-decision-buttons button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.similarity-reviewed-status {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* =========================================
+   NOVELTY + DIFFERENTIATION CARDS
+   ========================================= */
+
+.analysis-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  margin-top: 12px;
+  align-items: stretch;
+}
+
+.analysis-bottom-grid .novelty-analysis-card,
+.analysis-bottom-grid .differentiation-analysis-card {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 7px 22px rgba(70, 50, 130, 0.10);
+}
+
+.analysis-bottom-grid .novelty-analysis-card {
+  border: 1px solid #e9ddff;
+  background: linear-gradient(145deg, #fff, #faf6ff);
+}
+
+.analysis-bottom-grid .differentiation-analysis-card {
+  border: 1px solid #dce7ff;
+  background: linear-gradient(145deg, #fff, #f2f8ff);
+}
+
+.analysis-bottom-grid .novelty-analysis-card > h2,
+.analysis-bottom-grid .differentiation-analysis-card > h2 {
+  margin: 0;
+  padding: 11px 16px;
+  color: white;
+  font-size: 19px;
+  text-align: left;
+}
+
+.analysis-bottom-grid .novelty-analysis-card > h2 {
+  background: linear-gradient(
+    110deg,
+    #9333ea,
+    #7c3aed,
+    #4f46e5
+  );
+}
+
+.analysis-bottom-grid .differentiation-analysis-card > h2 {
+  background: linear-gradient(
+    110deg,
+    #2563eb,
+    #3b5bdb,
+    #1d4ed8
+  );
+}
+
+/* =========================================
+   NOVELTY ANALYSIS
+   ========================================= */
+
+.novelty-content {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 14px;
+  padding: 12px 14px;
+  align-items: start;
+}
+
+.novelty-score-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.novelty-score-section h3,
+.novelty-features-section h3 {
+  margin: 0 0 10px;
+  color: #5b21b6;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.novelty-circle {
+  --novelty-score: 0%;
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 13px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #22c7e8 var(--novelty-score),
+    #e8e2f5 var(--novelty-score)
+  );
+  box-shadow: 0 7px 20px rgba(124, 58, 237, 0.12);
+}
+
+.novelty-circle-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: white;
+  text-align: center;
+}
+
+.novelty-circle-inner .novelty-level {
+  color: #5b21b6;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.novelty-circle-inner .novelty-percentage {
+  color: #7c3aed;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.novelty-features-section {
+  min-width: 0;
+}
+
+.novelty-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.novelty-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid #e9ddff;
+  border-radius: 9px;
+  background: #f1edff;
+  color: #303b54;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.novelty-feature-icon {
+  flex-shrink: 0;
+  color: #059669;
+  font-weight: 800;
+}
+
+/* =========================================
+   DIFFERENTIATION ANALYSIS
+   ========================================= */
+
+.differentiation-content {
+  padding: 12px 14px;
+}
+
+.differentiation-subtitle {
+  margin: 0 0 10px;
+  color: #1d4ed8;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.differentiation-projects {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) 38px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.differentiation-project-box {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d8c8ff;
+  border-radius: 10px;
+  background: #f2edff;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.differentiation-project-box.match {
+  border-color: #bfdbfe;
+  background: #eaf3ff;
+}
+
+.differentiation-project-box small {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.differentiation-project-box strong {
+  display: block;
+  color: #49338b;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.differentiation-project-box.match strong {
+  color: #1d4ed8;
+}
+
+.differentiation-vs {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  font-weight: 800;
+}
+
+.differentiation-comparison {
+  overflow: hidden;
+  border: 1px solid #dce7ff;
+  border-radius: 10px;
+}
+
+.differentiation-row {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.85fr) minmax(0, 1.5fr);
+  border-bottom: 1px solid #dce7ff;
+}
+
+.differentiation-row:last-child {
+  border-bottom: none;
+}
+
+.differentiation-row-label {
+  display: flex;
+  align-items: center;
+  padding: 9px 10px;
+  border-right: 1px solid #dce7ff;
+  background: #f5f3ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.differentiation-row-label.common {
+  color: #047857;
+}
+
+.differentiation-row-label.additional {
+  color: #7c3aed;
+}
+
+.differentiation-row-label.different {
+  color: #d97706;
+}
+
+.differentiation-row-value {
+  padding: 9px 10px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   MATCHING PROJECT DETAILS PAGE
+   ========================================= */
+
 .similarity-detail-card {
-  padding: 28px;
+  padding: 24px;
   border: 1px solid #e9e2f7;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #ffffff, #f8f5ff);
-  box-shadow: 0 8px 28px rgba(65, 43, 105, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fff, #f8f5ff);
+  box-shadow: 0 8px 25px rgba(65, 43, 105, 0.08);
 }
 
 .similarity-detail-heading {
@@ -602,7 +822,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
-  padding-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid #e9e2f7;
 }
 
@@ -616,7 +836,7 @@
 .similarity-detail-heading h2 {
   margin: 8px 0 0;
   color: #38225f;
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -627,14 +847,14 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 15px 18px;
-  border-radius: 14px;
+  padding: 13px 16px;
+  border-radius: 12px;
   background: #ede9fe;
   color: #6d28d9;
 }
 
 .similarity-detail-score strong {
-  font-size: 25px;
+  font-size: 24px;
 }
 
 .similarity-detail-score span {
@@ -647,7 +867,7 @@
 }
 
 .similarity-detail-section {
-  padding: 18px 0;
+  padding: 15px 0;
   border-bottom: 1px solid #eee8f8;
 }
 
@@ -665,140 +885,134 @@
   margin: 0;
   color: #475569;
   font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.7;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
 
 .similarity-detail-empty {
-  padding: 18px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 10px;
   background: #f5f3ff;
   color: #5b21b6;
-  line-height: 1.7;
 }
 
 .similarity-detail-id {
-  margin-top: 20px;
+  margin-top: 16px;
   color: #94a3b8;
   font-size: 12px;
   overflow-wrap: anywhere;
 }
 
+/* =========================================
+   ERROR MESSAGES
+   ========================================= */
+
+.student-dashboard:has(.similarity-page-header) .sd-error,
+.faculty-message.error {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
+
+@media (max-width: 1100px) {
+  .similarity-three-columns {
+    grid-template-columns: 1fr 1.4fr;
+  }
+
+  .similarity-three-columns > section:nth-child(2) {
+    border-right: none;
+  }
+
+  .similarity-three-columns > section:last-child {
+    grid-column: 1 / -1;
+    border-top: 1px solid #dce3f2;
+  }
+}
+
+@media (max-width: 900px) {
+  .analysis-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .novelty-content {
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+}
+
 @media (max-width: 650px) {
-  .similarity-match-actions {
+  .student-dashboard:has(.similarity-page-header) .sd-main,
+  .faculty-similarity-page {
+    padding: 12px;
+  }
+
+  .similarity-page-header {
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
+    padding: 14px;
   }
 
-  .similarity-view-button {
-    padding: 7px 9px;
-    font-size: 11px;
+  .similarity-page-header h1 {
+    font-size: 21px;
   }
 
-  .similarity-detail-card {
-    padding: 18px;
-    border-radius: 16px;
+  .similarity-three-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .similarity-three-columns > section {
+    border-right: none !important;
+    border-bottom: 1px solid #dce3f2;
+  }
+
+  .similarity-three-columns > section:last-child {
+    grid-column: auto;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .similarity-three-columns .similarity-match-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .similarity-three-columns .similarity-match-actions {
+    justify-content: flex-start;
+    padding-left: 44px;
+  }
+
+  .novelty-content {
+    grid-template-columns: 1fr;
+  }
+
+  .differentiation-projects {
+    grid-template-columns: 1fr;
+  }
+
+  .differentiation-vs {
+    margin: 0 auto;
+  }
+
+  .differentiation-row {
+    grid-template-columns: 1fr;
+  }
+
+  .differentiation-row-label {
+    border-right: none;
+    border-bottom: 1px solid #dce7ff;
   }
 
   .similarity-detail-heading {
     flex-direction: column;
   }
 
-  .similarity-detail-heading h2 {
-    font-size: 21px;
-  }
-
-  .similarity-detail-score {
-    flex-direction: row;
-    gap: 8px;
-    padding: 10px 13px;
+  .similarity-decision-buttons {
+    flex-wrap: wrap;
   }
 }
-
-/* Similarity report inside Faculty Dashboard */
-.faculty-similarity-page {
-  min-height: 100vh;
-  width: 100%;
-  padding: 26px;
-  box-sizing: border-box;
-  color: #30264a;
-  background: linear-gradient(135deg, #f5f3ff, #eff6ff 55%, #fdf2f8);
-  border-radius: 20px;
-}
-
-.faculty-similarity-page .similarity-page-header {
-  margin-top: 0;
-}
-
-.faculty-similarity-page .similarity-report-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
-}
-
-@media (max-width: 900px) {
-  .faculty-similarity-page {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 650px) {
-  .faculty-similarity-page {
-    padding: 12px;
-  }
-
-  .faculty-similarity-page .similarity-report-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.similarity-decision-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.similarity-decision-buttons button {
-  min-width: 130px;
-  padding: 12px 22px;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.similarity-approve-btn {
-  background-color: #16a34a;
-}
-
-.similarity-approve-btn:hover:not(:disabled) {
-  background-color: #15803d;
-  transform: translateY(-1px);
-}
-
-.similarity-reject-btn {
-  background-color: #dc2626;
-}
-
-.similarity-reject-btn:hover:not(:disabled) {
-  background-color: #b91c1c;
-  transform: translateY(-1px);
-}
-
-.similarity-decision-buttons button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.similarity-reviewed-status {
-  margin-top: 12px;
-  text-align: center;
-  color: #475569;
-  font-weight: 600;
-}
-
